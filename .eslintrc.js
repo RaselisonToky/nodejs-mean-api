@@ -17,6 +17,5 @@ module.exports = {
         "require-jsdoc": "off",
         "no-unused-expressions": "off",
         "no-trailing-spaces": "off",
-
     }
 };

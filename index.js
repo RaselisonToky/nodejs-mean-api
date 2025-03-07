@@ -13,10 +13,6 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('Connecté à la base de données!'))
     .catch(err => console.error('Erreur de connexion à la base de données:', err));
 
-app.get('/', (req, res) => {
-    res.send('Bonjour!');
-});
-
 app.use(appRoutes);
 
 app.listen(port, () => {
