@@ -17,6 +17,6 @@ app.use('/users', userRoutes);
 app.use('/brand', carBrandRoute);
 app.use('/model', modelBrandRoute);
 app.use('/service', serviceRoute);
-app.user('/category', categoryRoute);
+app.use('/category', categoryRoute);
 
 export default app;
