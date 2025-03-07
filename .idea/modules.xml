@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/mean-nodejs-api.iml" filepath="$PROJECT_DIR$/.idea/mean-nodejs-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/nodejs-mean-api.iml" filepath="$PROJECT_DIR$/.idea/nodejs-mean-api.iml" />
     </modules>
   </component>
 </project>
