@@ -4,6 +4,7 @@ import carBrandRoute from "../car/brand/brand.route.js";
 import modelBrandRoute from "../car/model/model.route.js";
 import serviceRoute from "../service/service.route.js";
 import categoryRoute from "../category/category.route.js";
+import appointmentRoute from "../appointment/appointment.route.js";
 
 const app = express();
 app.use(express.json());
@@ -18,5 +19,6 @@ app.use('/brand', carBrandRoute);
 app.use('/model', modelBrandRoute);
 app.use('/service', serviceRoute);
 app.use('/category', categoryRoute);
+app.use('/appointment', appointmentRoute);
 
 export default app;

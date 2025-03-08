@@ -31,7 +31,7 @@ class CategoryController{
             const newCategory = await categoryService.create(req.body);
             res.status(201).json({
                 success: true,
-                message: 'Service créée avec succès',
+                message: 'Category créée avec succès',
                 data: newCategory
             });
         } catch (error) {

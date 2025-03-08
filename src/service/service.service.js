@@ -2,7 +2,8 @@ import Service from "./service.entity.js";
 
 class ServiceService{
     async getAll(){
-        return Service.find();
+        return Service.find()
+            .populate('category');
     }
 
     async getById(id){
