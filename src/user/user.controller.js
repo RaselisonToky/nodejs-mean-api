@@ -16,6 +16,7 @@ async function loginUser(req, res) {
         const { username, password } = req.body;
         const user = await userService.authenticateUser(username, password);
 
+
         if (!user) {
             return res.status(401).json({ message: 'Identifiants invalides' });
         }
