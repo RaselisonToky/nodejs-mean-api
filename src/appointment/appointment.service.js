@@ -3,7 +3,6 @@ import Appointment from "./appointment.entitiy.js";
 class AppointmentService{
     async getAll(){
         return Appointment.find()
-            .populate('user')
             .populate({
                 path: 'services',
                 populate: {

@@ -28,6 +28,7 @@ class AppointmentController{
 
     async create(req, res) {
         try {
+            console.log(req.body)
             const newAppointment = await appointmentService.create(req.body);
             res.status(201).json({
                 success: true,

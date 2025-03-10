@@ -9,7 +9,9 @@ export const STATUS = {
 };
 
 const AppointmentSchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    name: {type: String, required: true},
+    email: {type: String, required: true},
+    phone: {type: String, required: true},
     carModel: { type: mongoose.Schema.Types.ObjectId, ref: 'Model', required: true },
     licensePlate: { type: String, required: true },
     services: [
