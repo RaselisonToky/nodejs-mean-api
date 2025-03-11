@@ -88,5 +88,24 @@ class AppointmentController{
             });
         }
     }
+
+    async getAvailableTimeSlots(req, res){
+        try {
+            const date = req.params.filter_date;
+            const selectedDate = new Date(date);
+            console.log(selectedDate)
+            const availableTimeSlots = await appointmentService.getAvailableTimeSlots(selectedDate);
+            return res.status(200).json({
+                success: true,
+                data: availableTimeSlots
+            });
+        } catch (error) {
+            console.error('Erreur endpoint des créneaux disponibles:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Erreur serveur lors de la récupération des créneaux disponibles'
+            });
+        }
+    }
 }
 export default new AppointmentController();
