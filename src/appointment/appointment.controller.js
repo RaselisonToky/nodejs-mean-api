@@ -3,7 +3,9 @@ import appointmentService from "./appointment.service.js";
 class AppointmentController{
     async getAll(req, res){
         try{
-            const appointments = await appointmentService.getAll();
+            const startDate = req.body.startDate;
+            const endDate = req.body.endDate;
+            const appointments = await appointmentService.getAll(new Date(startDate), new Date(endDate));
             res.json({
                 success: true,
                 data: appointments,
@@ -28,7 +30,6 @@ class AppointmentController{
 
     async create(req, res) {
         try {
-            console.log(req.body)
             const newAppointment = await appointmentService.create(req.body);
             res.status(201).json({
                 success: true,
@@ -93,14 +94,12 @@ class AppointmentController{
         try {
             const date = req.params.filter_date;
             const selectedDate = new Date(date);
-            console.log(selectedDate)
             const availableTimeSlots = await appointmentService.getAvailableTimeSlots(selectedDate);
             return res.status(200).json({
                 success: true,
                 data: availableTimeSlots
             });
         } catch (error) {
-            console.error('Erreur endpoint des créneaux disponibles:', error);
             return res.status(500).json({
                 success: false,
                 message: 'Erreur serveur lors de la récupération des créneaux disponibles'

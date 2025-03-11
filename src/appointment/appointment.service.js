@@ -1,20 +1,25 @@
 import Appointment from "./appointment.entitiy.js";
 
 class AppointmentService{
-    async getAll(){
-        return Appointment.find()
-            .populate({
-                path: 'services',
-                populate: {
-                    path: 'category'
-                }
-            })
-            .populate({
-                path: 'carModel',
-                populate: {
-                    path: 'brand',
-                }
-            });
+    async getAll(startDate, endDate) {
+        return Appointment.find({
+            scheduleAt: {
+                $gte: startDate,
+                $lte: endDate
+            }
+        }).populate({
+            path: 'services',
+            populate: {
+                path: 'category'
+            }
+        })
+        .populate({
+            path: 'carModel',
+            populate: {
+                path: 'brand',
+            }
+        })
+        .exec();
     }
 
     async getById(id){
@@ -41,8 +46,8 @@ class AppointmentService{
     async getAvailableTimeSlots(date) {
         try {
             const allTimeSlots = [
-                '08:00', '09:00', '10:00', '11:00', '12:00',
-                '13:00', '14:00', '15:00', '16:00', '17:00'
+                '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00',
+                '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'
             ];
             const startOfDay = new Date(date);
             startOfDay.setHours(0, 0, 0, 0);

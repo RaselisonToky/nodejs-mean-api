@@ -3,7 +3,7 @@ import appointmentController from "./appointment.controller.js";
 
 const router = Router();
 
-router.get('/', appointmentController.getAll);
+router.post('/monitoring', appointmentController.getAll);
 router.get('/:id', appointmentController.getById);
 router.post('/', appointmentController.create);
 router.put('/:id', appointmentController.update);
