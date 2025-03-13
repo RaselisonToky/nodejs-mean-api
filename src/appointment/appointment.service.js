@@ -1,4 +1,4 @@
-import Appointment from "./appointment.entitiy.js";
+import Appointment, {allTimeSlots} from "./appointment.entitiy.js";
 
 class AppointmentService{
     async getAll(startDate, endDate) {
@@ -45,10 +45,6 @@ class AppointmentService{
 
     async getAvailableTimeSlots(date) {
         try {
-            const allTimeSlots = [
-                '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00',
-                '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'
-            ];
             const startOfDay = new Date(date);
             startOfDay.setHours(0, 0, 0, 0);
             const endOfDay = new Date(date);

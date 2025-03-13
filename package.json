@@ -4,6 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "lint": "eslint .",
     "start": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "node src/scripts/migration/migration.js"
