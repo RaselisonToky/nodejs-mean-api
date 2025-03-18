@@ -2,7 +2,7 @@ import Model from "./model.entity.js";
 
 class ModelService {
     async getAll(){
-        return Model.find();
+        return Model.find().populate('brand');
     }
 
     async getById(id){

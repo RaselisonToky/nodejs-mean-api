@@ -3,7 +3,9 @@ import appointmentService from "./appointment.service.js";
 class AppointmentController{
     async getAll(req, res){
         try{
-            const appointments = await appointmentService.getAll();
+            const startDate = req.body.startDate;
+            const endDate = req.body.endDate;
+            const appointments = await appointmentService.getAll(new Date(startDate), new Date(endDate));
             res.json({
                 success: true,
                 data: appointments,
@@ -84,6 +86,23 @@ class AppointmentController{
                 success: false,
                 message: 'Erreur lors de la suppression du rendez-vous',
                 error: error.message
+            });
+        }
+    }
+
+    async getAvailableTimeSlots(req, res){
+        try {
+            const date = req.params.filter_date;
+            const selectedDate = new Date(date);
+            const availableTimeSlots = await appointmentService.getAvailableTimeSlots(selectedDate);
+            return res.status(200).json({
+                success: true,
+                data: availableTimeSlots
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: 'Erreur serveur lors de la récupération des créneaux disponibles'
             });
         }
     }

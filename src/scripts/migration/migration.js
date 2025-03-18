@@ -339,7 +339,9 @@ async function createAppointments(adminUser, services) {
         const status = statuses[Math.floor(Math.random() * statuses.length)];
 
         await Appointment.create({
-            user: adminUser._id,
+            name: "Raselison Toky",
+            email: "toky@gmail.com",
+            phone: "0343061615",
             carModel: selectedCarModel._id,
             licensePlate: generateLicensePlate(),
             services: selectedServices.map((service) => service._id),
