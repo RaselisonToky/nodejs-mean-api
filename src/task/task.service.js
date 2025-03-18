@@ -23,6 +23,25 @@ class TaskService {
         return results;
     }
 
+    async findTasksByUserId(userId) {
+        return Task.find({ users: userId })
+            .populate({
+                path: 'appointment',
+                select: 'scheduleAt carModel licensePlate',
+                populate: {
+                    path: 'carModel',
+                    select: 'name brand',
+                    populate: {
+                        path: 'brand',
+                        select: 'name'
+                    }
+                }
+            })
+            .populate({ path: 'service', select: 'name' })
+            .populate({ path: 'users', select: 'firstname' })
+            .lean();
+    }
+
     async findTasksByAppointmentId(appointmentId){
         return Task.find({ appointment: appointmentId })
     }

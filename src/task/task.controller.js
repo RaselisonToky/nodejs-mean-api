@@ -19,10 +19,26 @@ class TaskController {
         }
     }
 
+    async findTaskByUserId(req, res){
+        try {
+            const tasks = await  taskService.findTasksByUserId(req.params.id);
+            res.json({
+                success: true,
+                data: tasks,
+                count: tasks.length
+            })
+        }catch (error){
+            res.status(500).json({
+                success: false,
+                message: "Erreur lors de la récuperation des tâches",
+                error: error.message,
+            })
+        }
+    }
+
     async findTasksByAppointmentId(req, res){
         try{
             const tasks = await taskService.findTasksByAppointmentId(req.params.id);
-            console.log(tasks)
             res.json({
                 success: true,
                 data: tasks,
