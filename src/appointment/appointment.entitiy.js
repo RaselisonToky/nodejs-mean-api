@@ -2,10 +2,10 @@ import mongoose from "mongoose";
 
 export const STATUS = {
     PENDING: 'PENDING',
-    CONFIRMED: 'CONFIRMED',
-    IN_MAINTENANCE: 'IN_MAINTENANCE',
-    SUSPENDED: 'SUSPENDED',
-    FINISHED: 'FINISHED'
+    IN_PROGRESS: 'IN_PROGRESS',
+    IN_REVIEW: 'IN_REVIEW',
+    COMPLETED: 'COMPLETED',
+    CANCELED: 'CANCELED'
 };
 
 export const allTimeSlots = [

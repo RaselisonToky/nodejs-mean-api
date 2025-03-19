@@ -10,7 +10,6 @@ class TaskController {
                 message: "Tâches créées ou mises à jour avec succès"
             });
         } catch (error) {
-            console.log(error);
             res.status(500).json({
                 success: false,
                 message: "Erreur lors de la création ou mise à jour des tâches",
@@ -48,6 +47,18 @@ class TaskController {
             res.status(500).json({
                 success: false,
                 message: "Erreur lors de la récuperation des tâches",
+                error: error.message,
+            })
+        }
+    }
+
+    async updateTaskStatus(req, res) {
+        try{
+            await taskService.updateTaskStatus(req.params.id, req.body.status);
+        }catch (error){
+            res.status(500).json({
+                success: false,
+                message: "Erreur lors de la mise à jour du tâche",
                 error: error.message,
             })
         }

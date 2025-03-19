@@ -1,4 +1,6 @@
-import Appointment, {allTimeSlots} from "./appointment.entitiy.js";
+import Appointment, {allTimeSlots, STATUS} from "./appointment.entitiy.js";
+import TaskService from "../task/task.service.js";
+import taskService from "../task/task.service.js";
 
 class AppointmentService{
     async getAll(startDate, endDate) {
@@ -57,7 +59,9 @@ class AppointmentService{
             });
             const bookedTimeSlots = appointments.map(appointment => {
                 const appointmentDate = new Date(appointment.scheduleAt);
-                return `${appointmentDate.getHours().toString().padStart(2, '0')}:00`;
+                const hours = appointmentDate.getHours().toString().padStart(2, '0');
+                const minutes = appointmentDate.getMinutes().toString().padStart(2, '0');
+                return `${hours}:${minutes}`;
             });
             return allTimeSlots.filter(
                 timeSlot => !bookedTimeSlots.includes(timeSlot)
@@ -67,5 +71,28 @@ class AppointmentService{
             throw error;
         }
     }
+
+    async updateAppointmentStatus(appointmentId){
+        const tasks = await taskService.findTasksByAppointmentId(appointmentId);
+        const newStatus = await this.DETERMINES_APPOINTMENT_STATUS(tasks);
+        return Appointment.findByIdAndUpdate(appointmentId, {status: newStatus})
+    }
+
+    async DETERMINES_APPOINTMENT_STATUS(tasks, appointmentId){
+        const isPending = await TaskService.CHECK_IF_ONE_OF_APPOINTMENT_TASKS_IS_PEDNING(tasks);
+        const isInProgress = await TaskService.CHECK_IF_ONE_OF_APPOINTMENT_TASKS_IS_IN_PROGRESS(tasks);
+        const isInReview = await TaskService.CHECK_IF_ALL_TASK_IS_IN_REVIEW(tasks);
+        if(isPending)
+            return STATUS.PENDING;
+        else if (isInReview)
+            return STATUS.IN_REVIEW;
+         else if(isInProgress)
+            return STATUS.IN_PROGRESS;
+
+        return STATUS.IN_PROGRESS;
+    }
+
+
+
 }
 export default new AppointmentService();
