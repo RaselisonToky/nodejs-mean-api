@@ -7,5 +7,6 @@ router.post('/', taskController.upsertMany);
 router.get('/:id', taskController.findTasksByAppointmentId);
 router.get('/task/:id', taskController.findTaskByUserId);
 router.put('/update/:id', taskController.updateTaskStatus);
+router.post('/service', taskController.findTaskByAppointmentIdAndServiceId)
 
 export default router;

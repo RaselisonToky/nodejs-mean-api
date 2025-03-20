@@ -48,12 +48,19 @@ class TaskService {
         return Task.find({ appointment: appointmentId })
     }
 
+    async findTaskByAppointmentIdAndServiceId(appointmentId, serviceId){
+        return Task.findOne({
+            appointment: appointmentId,
+            service: serviceId
+        })
+    }
+
     async updateTaskStatus(taskId, status){
         const taskWithNewStatus = await Task.findByIdAndUpdate(taskId, {status: status});
         await AppointmentService.updateAppointmentStatus(taskWithNewStatus['appointment'].toString());
     }
 
-    async CHECK_IF_ONE_OF_APPOINTMENT_TASKS_IS_PEDNING(tasks){
+    async CHECK_IF_ONE_OF_APPOINTMENT_TASKS_IS_PENDING(tasks){
         return tasks.every(task => task.status === STATUS.PENDING);
     }
 
@@ -63,6 +70,10 @@ class TaskService {
 
     async CHECK_IF_ALL_TASK_IS_IN_REVIEW(tasks){
         return  tasks.every(task => task.status === STATUS.IN_REVIEW);
+    }
+
+    async CHECK_IF_TASK_IS_COMPLETED(tasks){
+        return  tasks.every(task => task.status === STATUS.COMPLETED);
     }
 }
 
