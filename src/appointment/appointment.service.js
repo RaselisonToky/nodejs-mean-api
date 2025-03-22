@@ -25,7 +25,20 @@ class AppointmentService{
     }
 
     async getById(id){
-        const appointment = Appointment.findById(id);
+        const appointment = Appointment.findById(id)
+            .populate({
+                path: 'services',
+                populate: {
+                    path: 'category'
+                }
+            })
+            .populate({
+                path: 'carModel',
+                populate: {
+                    path: 'brand',
+                }
+            })
+            .exec();
         if (!appointment){
             throw new Error("Marque non trouvée");
         }

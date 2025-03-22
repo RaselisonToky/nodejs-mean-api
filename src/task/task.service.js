@@ -52,12 +52,14 @@ class TaskService {
         return Task.findOne({
             appointment: appointmentId,
             service: serviceId
-        })
+        });
+
     }
 
     async updateTaskStatus(taskId, status){
         const taskWithNewStatus = await Task.findByIdAndUpdate(taskId, {status: status});
         await AppointmentService.updateAppointmentStatus(taskWithNewStatus['appointment'].toString());
+        return taskWithNewStatus;
     }
 
     async CHECK_IF_ONE_OF_APPOINTMENT_TASKS_IS_PENDING(tasks){

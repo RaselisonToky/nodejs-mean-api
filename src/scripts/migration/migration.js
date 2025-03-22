@@ -14,8 +14,7 @@ import CarModel from "../../car/model/model.entity.js";
 import Piece from "../../inventory/piece/piece.entity.js";
 import Supplier from "../../inventory/supplier/supplier.entity.js";
 
-const MONGO_URI =
-    process.env.MONGO_URI || "mongodb://localhost:27017/your_database";
+const MONGO_URI = process.env.MONGO_URI ;
 
 async function connectDB() {
     if (mongoose.connection.readyState === 0) {
@@ -65,6 +64,29 @@ async function createAdminUser(roles) {
         console.log("L'utilisateur admin existe déjà");
     }
     return adminUser;
+}
+
+async function createMechanics(roles, numMechanics = 5) {
+    const mechanicDocs = [];
+
+    for (let i = 0; i < numMechanics; i++) {
+        const username = `mechanic${i + 1}`;
+        let mechanic = await User.findOne({ username: username });
+
+        if (!mechanic) {
+            mechanic = await User.create({
+                firstname: faker.person.firstName(),
+                lastname: faker.person.lastName(),
+                username: username,
+                email: `mechanic${i + 1}@gmail.com`,
+                password: await bcrypt.hash("password", 10),
+                roles: [roles["MECHANIC"]._id],
+            });
+            console.log(`Mécanicien ${username} créé`);
+        }
+        mechanicDocs.push(mechanic);
+    }
+    return mechanicDocs;
 }
 
 async function createCategories() {
@@ -236,7 +258,22 @@ async function createServices(categories) {
 }
 
 async function createCarBrands() {
-    const brandsData = ["Renault", "Peugeot", "Citroen", "Volkswagen", "Toyota"];
+    const brandsData = [
+        "Renault",
+        "Peugeot",
+        "Citroen",
+        "Volkswagen",
+        "Toyota",
+        "BMW",
+        "Mercedes-Benz",
+        "Audi",
+        "Ford",
+        "Nissan",
+        "Fiat",
+        "Hyundai",
+        "Kia",
+        "Opel"
+    ];
     const brandDocs = {};
 
     for (const brandName of brandsData) {
@@ -251,13 +288,39 @@ async function createCarBrands() {
 }
 
 async function createCarModels(brands) {
-    const carModelData = [
-        { brand: brands["Renault"]._id, name: "Clio", releaseYear: 2018 },
-        { brand: brands["Peugeot"]._id, name: "308", releaseYear: 2019 },
-        { brand: brands["Citroen"]._id, name: "C3", releaseYear: 2020 },
-        { brand: brands["Volkswagen"]._id, name: "Golf", releaseYear: 2017 },
-        { brand: brands["Toyota"]._id, name: "Yaris", releaseYear: 2021 },
-    ];
+    const carModelData = [];
+
+    const modelsByBrand = {
+        Renault: ["Clio (2019)", "Megane (2020)", "Captur (2021)", "Twingo (2022)", "Arkana (2023)"],
+        Peugeot: ["208 (2020)", "308 (2021)", "2008 (2022)", "3008 (2023)", "5008 (2020)"],
+        Citroen: ["C3 (2021)", "C4 (2022)", "C5 Aircross (2023)", "Berlingo (2020)", "C3 Aircross (2021)"],
+        Volkswagen: ["Golf (2020)", "Polo (2021)", "Tiguan (2022)", "Passat (2023)", "Taigo (2021)"],
+        Toyota: ["Yaris (2020)", "Corolla (2021)", "RAV4 (2022)", "C-HR (2023)", "Aygo X (2022)"],
+        BMW: ["Série 3 (2021)", "Série 5 (2022)", "X3 (2023)", "X1 (2022)", "i4 (2022)"],
+        "Mercedes-Benz": ["Classe C (2021)", "Classe E (2022)", "GLC (2023)", "Classe A (2022)", "GLB (2021)"],
+        Audi: ["A3 (2020)", "A4 (2021)", "Q3 (2022)", "Q5 (2023)", "A1 (2022)"],
+        Ford: ["Focus (2020)", "Fiesta (2021)", "Kuga (2022)", "Puma (2023)", "Mustang Mach-E (2021)"],
+        Nissan: ["Qashqai (2021)", "Juke (2022)", "X-Trail (2023)", "Micra (2020)", "Leaf (2021)"],
+        Fiat: ["500 (2021)", "Panda (2022)", "Tipo (2023)", "500X (2020)", "500L (2021)"],
+        Hyundai: ["Tucson (2021)", "Kona (2022)", "i20 (2023)", "i10 (2020)", "Bayon (2021)"],
+        Kia: ["Sportage (2021)", "Ceed (2022)", "Niro (2023)", "Picanto (2020)", "Stonic (2021)"],
+        Opel: ["Corsa (2020)", "Astra (2021)", "Mokka (2022)", "Crossland (2023)", "Grandland (2021)"]
+    };
+
+    for (const brandName in brands) {
+        const brandId = brands[brandName]._id;
+        const models = modelsByBrand[brandName];
+        for (const model of models) {
+            const [modelName, releaseYearStr] = model.split(" (");
+            const releaseYear = parseInt(releaseYearStr.slice(0, 4)); // Extract year from string
+            carModelData.push({
+                brand: brandId,
+                name: modelName,
+                releaseYear: releaseYear,
+            });
+        }
+    }
+
     const carModelDocs = [];
     for (const car of carModelData) {
         let carModel = await CarModel.findOne({
@@ -333,7 +396,7 @@ async function createAppointments(adminUser, services) {
     for (let i = 0; i < 10; i++) {
         const selectedCarModel =
             carModels[Math.floor(Math.random() * carModels.length)];
-        const numberOfServices = Math.floor(Math.random() * 3) + 1; // 1 à 3 services
+        const numberOfServices = Math.floor(Math.random() * 3) + 1;
         const selectedServices = getRandomServices(services, numberOfServices);
         const { totalDuration, totalPrice } = calculateTotals(selectedServices);
         const status = statuses[Math.floor(Math.random() * statuses.length)];
@@ -377,7 +440,7 @@ const createFakePieces = async (numRecords = 10) => {
             unit_price: parseFloat(faker.commerce.price()),
             stock_quantity: faker.number.int({ min: 0, max: 100 }),
             alert_threshold: faker.number.int({ min: 1, max: 10 }),
-            supplier_id: mongoose.Types.ObjectId(), // Fake supplier ObjectId
+            supplier_id: mongoose.Types.ObjectId(),
             last_updated: faker.date.recent(),
         });
         pieces.push(piece);
@@ -389,11 +452,11 @@ async function runMigrations() {
         await connectDB();
         const roles = await createRoles();
         const adminUser = await createAdminUser(roles);
+        await createMechanics(roles);
         const categories = await createCategories();
         await createServices(categories);
         const brands = await createCarBrands();
         await createCarModels(brands);
-
         await createAppointments(adminUser, await Service.find());
         await createSuppliers();
         // await createFakePieces();

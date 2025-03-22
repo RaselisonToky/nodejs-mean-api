@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 export const STATUS = {
+    REQUESTED: 'REQUESTED',
     PENDING: 'PENDING',
     IN_PROGRESS: 'IN_PROGRESS',
     IN_REVIEW: 'IN_REVIEW',
@@ -25,7 +26,7 @@ const AppointmentSchema = new mongoose.Schema({
     scheduleAt: { type: Date, required: true },
     estimateDuration: { type: Number, default: 0 },
     estimatedPrice: { type: Number, default: 0 },
-    status: { type: String, enum: Object.values(STATUS), default: STATUS.PENDING }
+    status: { type: String, enum: Object.values(STATUS), default: STATUS.REQUESTED}
 });
 
 const Appointment = mongoose.model('Appointment', AppointmentSchema);
