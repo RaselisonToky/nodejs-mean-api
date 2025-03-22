@@ -71,7 +71,7 @@ class TaskController {
 
     async updateTaskStatus(req, res) {
         try{
-            const task = await taskService.updateTaskStatus(req.params.id, req.body.status);
+            const task = await taskService.updateTaskStatus(req.params.id, req.body);
             res.json({
                 success: true,
                 data: task

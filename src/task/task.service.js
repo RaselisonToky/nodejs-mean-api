@@ -3,6 +3,7 @@ import {STATUS} from "../appointment/appointment.entitiy.js";
 import AppointmentService from "../appointment/appointment.service.js";
 
 class TaskService {
+
     async upsertMany(tasksData) {
         const results = [];
         for (const taskData of tasksData) {
@@ -56,8 +57,9 @@ class TaskService {
 
     }
 
-    async updateTaskStatus(taskId, status){
-        const taskWithNewStatus = await Task.findByIdAndUpdate(taskId, {status: status});
+
+    async updateTaskStatus(taskId, data){
+        const taskWithNewStatus = await Task.findByIdAndUpdate(taskId, data);
         await AppointmentService.updateAppointmentStatus(taskWithNewStatus['appointment'].toString());
         return taskWithNewStatus;
     }

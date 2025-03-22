@@ -3,25 +3,30 @@ import TaskService from "../task/task.service.js";
 import taskService from "../task/task.service.js";
 
 class AppointmentService{
+
     async getAll(startDate, endDate) {
+        const startDateTime = new Date(startDate);
+        startDateTime.setHours(0, 0, 0, 0);
+        const endDateTime = new Date(endDate);
+        endDateTime.setHours(23, 59, 59, 999);
         return Appointment.find({
-            scheduleAt: {
-                $gte: startDate,
-                $lte: endDate
-            }
-        }).populate({
-            path: 'services',
-            populate: {
-                path: 'category'
-            }
-        })
-        .populate({
-            path: 'carModel',
-            populate: {
-                path: 'brand',
-            }
-        })
-        .exec();
+                scheduleAt: {
+                    $gte: startDateTime,
+                    $lte: endDateTime
+                }
+            }).populate({
+                path: 'services',
+                populate: {
+                    path: 'category'
+                }
+            })
+            .populate({
+                path: 'carModel',
+                populate: {
+                    path: 'brand',
+                }
+            })
+            .exec();
     }
 
     async getById(id){
