@@ -1,6 +1,7 @@
 import Task from "./task.entity.js";
 import {STATUS} from "../appointment/appointment.entitiy.js";
 import AppointmentService from "../appointment/appointment.service.js";
+import TaskHistoryService from "../task-history/task-history.service.js";
 
 class TaskService {
 
@@ -16,9 +17,11 @@ class TaskService {
                 existingTask.users = taskData.users;
                 existingTask.status = taskData.status || existingTask.status;
                 result = await existingTask.save();
+                await TaskHistoryService.create(existingTask);
             } else {
                 const newTask = new Task(taskData);
                 result = await newTask.save();
+                await TaskHistoryService.create(newTask);
             }
 
             results.push(result);
@@ -57,10 +60,10 @@ class TaskService {
 
     }
 
-
     async updateTaskStatus(taskId, data){
-        const taskWithNewStatus = await Task.findByIdAndUpdate(taskId, data);
+        const taskWithNewStatus = await Task.findByIdAndUpdate(taskId, data, { new: true });
         await AppointmentService.updateAppointmentStatus(taskWithNewStatus['appointment'].toString());
+        await TaskHistoryService.create(taskWithNewStatus)
         return taskWithNewStatus;
     }
 
