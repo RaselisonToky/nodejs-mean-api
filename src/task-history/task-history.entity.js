@@ -6,6 +6,11 @@ const TaskHistorySchema  = new mongoose.Schema({
     price: {
         type: Number
     },
+    createdAt: {
+        type: Date,
+        required: true,
+        default: new Date()
+    }
 })
 const TaskHistory = mongoose.model('TaskHistory', TaskHistorySchema);
 export default TaskHistory;

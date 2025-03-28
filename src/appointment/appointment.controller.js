@@ -5,7 +5,7 @@ class AppointmentController{
         try{
             const startDate = req.body.startDate;
             const endDate = req.body.endDate;
-            const appointments = await appointmentService.getAll(new Date(startDate), new Date(endDate));
+            const appointments = await appointmentService.getAll(startDate, endDate);
             res.json({
                 success: true,
                 data: appointments,
