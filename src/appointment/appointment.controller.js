@@ -26,7 +26,6 @@ class AppointmentController{
                 data: appointment
             });
         } catch (error) {
-            console.error(error)
             res.status(500).json({ success: false, message: 'Erreur lors de la récupération du rendez-vous', error: error.message });
         }
     }

@@ -6,8 +6,8 @@ class AppointmentService{
 
     async getAll(startDate, endDate) {
         const startDateTime = new Date(startDate);
-        startDateTime.setHours(0, 0, 0, 0);
         const endDateTime = new Date(endDate);
+        startDateTime.setHours(0, 0, 0, 0);
         endDateTime.setHours(23, 59, 59, 999);
         return Appointment.find({
                 scheduleAt: {
@@ -25,8 +25,7 @@ class AppointmentService{
                 populate: {
                     path: 'brand',
                 }
-            })
-            .exec();
+            }).exec();
     }
 
     async getById(id){
@@ -42,11 +41,7 @@ class AppointmentService{
                 populate: {
                     path: 'brand',
                 }
-            })
-            .exec();
-        if (!appointment){
-            throw new Error("Marque non trouvée");
-        }
+            }).exec();
         return appointment;
     }
 
@@ -66,8 +61,8 @@ class AppointmentService{
     async getAvailableTimeSlots(date) {
         try {
             const startOfDay = new Date(date);
-            startOfDay.setHours(0, 0, 0, 0);
             const endOfDay = new Date(date);
+            startOfDay.setHours(0, 0, 0, 0);
             endOfDay.setHours(23, 59, 59, 999);
             const appointments = await Appointment.find({
                 scheduleAt: {
