@@ -112,5 +112,20 @@ class AppointmentService{
         const newStatus = await this.DETERMINES_APPOINTMENT_STATUS(tasks);
         return Appointment.findByIdAndUpdate(appointmentId, {status: newStatus})
     }
+
+    async getAppointmentCountByStatus(){
+        const counts = await Appointment.aggregate([
+            {
+                $group: {
+                    _id: "$status",
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+        return counts.reduce((acc, curr) => {
+            acc[curr._id] = curr.count;
+            return acc;
+        }, {});
+    }
 }
 export default new AppointmentService();
