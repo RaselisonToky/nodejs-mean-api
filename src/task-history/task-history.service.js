@@ -22,10 +22,10 @@ class TaskHistoryService {
                 $lte: endDateTime
             }
          })
-            .populate('appointment', 'licensePlate')
-            .populate('service', 'name')
-            .populate('users', 'firstname')
-            .exec()
+        .populate('appointment', 'licensePlate')
+        .populate('service', 'name')
+        .populate('users', 'firstname')
+        .exec()
     }
 }
 export default new TaskHistoryService();
