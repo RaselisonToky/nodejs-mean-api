@@ -7,6 +7,10 @@ import categoryRoute from "../category/category.route.js";
 import appointmentRoute from "../appointment/appointment.route.js";
 import taskRoute from "../task/task.route.js";
 import pieceRoute from "../inventory/piece/piece.route.js";
+import supplierRoute from "../inventory/supplier/supplier.route.js";
+import supplierOrderRoute from "../inventory/supplier/order/order.route.js";
+import transactionRoute from "../inventory/transaction/transaction.route.js";
+import inventoryRoute from "../inventory/inventory.route.js"
 import taskHistoryRoute from "../task-history/task-history.route.js";
 const app = express();
 app.use(express.json());
@@ -23,5 +27,9 @@ app.use("/category", categoryRoute);
 app.use("/appointment", appointmentRoute);
 app.use("/tasks", taskRoute);
 app.use("/inventory/pieces", pieceRoute);
+app.use("/inventory/supplier", supplierRoute);
+app.use("/inventory/supplier/order", supplierOrderRoute);
+app.use("/inventory/transaction", transactionRoute);
+app.use("/inventory", inventoryRoute);
 app.use('/tasks/histories', taskHistoryRoute)
 export default app;

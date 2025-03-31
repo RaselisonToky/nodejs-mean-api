@@ -14,12 +14,8 @@ import CarModel from "../../car/model/model.entity.js";
 import Piece from "../../inventory/piece/piece.entity.js";
 import Supplier from "../../inventory/supplier/supplier.entity.js";
 
-<<<<<<< HEAD
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://localhost:27017/your_database";
-=======
+
 const MONGO_URI = process.env.MONGO_URI ;
->>>>>>> 3d0e2fc99d6927677f82e5f0767749741fceb53b
 
 async function connectDB() {
   if (mongoose.connection.readyState === 0) {
@@ -263,28 +259,10 @@ async function createServices(categories) {
 }
 
 async function createCarBrands() {
-<<<<<<< HEAD
+
   const brandsData = ["Renault", "Peugeot", "Citroen", "Volkswagen", "Toyota"];
   const brandDocs = {};
-=======
-    const brandsData = [
-        "Renault",
-        "Peugeot",
-        "Citroen",
-        "Volkswagen",
-        "Toyota",
-        "BMW",
-        "Mercedes-Benz",
-        "Audi",
-        "Ford",
-        "Nissan",
-        "Fiat",
-        "Hyundai",
-        "Kia",
-        "Opel"
-    ];
-    const brandDocs = {};
->>>>>>> 3d0e2fc99d6927677f82e5f0767749741fceb53b
+
 
   for (const brandName of brandsData) {
     let brand = await Brand.findOne({ name: brandName });
@@ -298,7 +276,7 @@ async function createCarBrands() {
 }
 
 async function createCarModels(brands) {
-<<<<<<< HEAD
+
   const carModelData = [
     { brand: brands["Renault"]._id, name: "Clio", releaseYear: 2018 },
     { brand: brands["Peugeot"]._id, name: "308", releaseYear: 2019 },
@@ -315,8 +293,7 @@ async function createCarModels(brands) {
     if (!carModel) {
       carModel = await CarModel.create(car);
       console.log(`Modèle de voiture ${car.name} créé`);
-=======
-    const carModelData = [];
+
 
     const modelsByBrand = {
         Renault: ["Clio (2019)", "Megane (2020)", "Captur (2021)", "Twingo (2022)", "Arkana (2023)"],
@@ -349,19 +326,7 @@ async function createCarModels(brands) {
         }
     }
 
-    const carModelDocs = [];
-    for (const car of carModelData) {
-        let carModel = await CarModel.findOne({
-            name: car.name,
-            releaseYear: car.releaseYear,
-        });
-        if (!carModel) {
-            carModel = await CarModel.create(car);
-            console.log(`Modèle de voiture ${car.name} créé`);
-        }
-        carModelDocs.push(carModel);
->>>>>>> 3d0e2fc99d6927677f82e5f0767749741fceb53b
-    }
+   
     carModelDocs.push(carModel);
   }
   return carModelDocs;
@@ -448,41 +413,13 @@ async function createAppointments(adminUser, services) {
     console.log(`Rendez-vous #${i + 1} créé avec statut ${status}`);
   }
 
-<<<<<<< HEAD
+
   console.log("Tous les rendez-vous ont été créés");
-=======
+
         return plate;
     };
 
-    const statuses = Object.values(STATUS);
-    const Appointment = mongoose.model("Appointment");
 
-    for (let i = 0; i < 10; i++) {
-        const selectedCarModel =
-            carModels[Math.floor(Math.random() * carModels.length)];
-        const numberOfServices = Math.floor(Math.random() * 3) + 1;
-        const selectedServices = getRandomServices(services, numberOfServices);
-        const { totalDuration, totalPrice } = calculateTotals(selectedServices);
-        const status = statuses[Math.floor(Math.random() * statuses.length)];
-
-        await Appointment.create({
-            name: "Raselison Toky",
-            email: "toky@gmail.com",
-            phone: "0343061615",
-            carModel: selectedCarModel._id,
-            licensePlate: generateLicensePlate(),
-            services: selectedServices.map((service) => service._id),
-            scheduleAt: generateRandomDate(),
-            estimateDuration: totalDuration,
-            estimatedPrice: totalPrice,
-            status: status,
-        });
-
-        console.log(`Rendez-vous #${i + 1} créé avec statut ${status}`);
-    }
-
-    console.log("Tous les rendez-vous ont été créés");
->>>>>>> 3d0e2fc99d6927677f82e5f0767749741fceb53b
 }
 
 const createPieces = async (numRecords = 10) => {
@@ -517,7 +454,7 @@ const createPieces = async (numRecords = 10) => {
 };
 
 const createFakePieces = async (numRecords = 10) => {
-<<<<<<< HEAD
+
   const pieces = [];
   for (let i = 0; i < numRecords; i++) {
     const piece = new Piece({
@@ -553,7 +490,7 @@ async function runMigrations() {
   } finally {
     await closeDB();
   }
-=======
+
     const pieces = [];
     for (let i = 0; i < numRecords; i++) {
         const piece = new Piece({
@@ -589,7 +526,6 @@ async function runMigrations() {
     } finally {
         await closeDB();
     }
->>>>>>> 3d0e2fc99d6927677f82e5f0767749741fceb53b
 }
 
 runMigrations().then();
