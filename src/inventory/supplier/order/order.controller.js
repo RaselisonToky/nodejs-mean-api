@@ -1,4 +1,4 @@
-import supplierOrderService from "./supplierOrder.service.js";
+import supplierOrderService from "./order.service.js";
 
 class SupplierOrderController {
     async getAll(req, res) {

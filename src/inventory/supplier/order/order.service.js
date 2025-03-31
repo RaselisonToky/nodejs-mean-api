@@ -1,4 +1,4 @@
-import SupplierOrder from "./supplierOrder.entity.js";
+import SupplierOrder from "./order.entity.js";
 
 class SupplierOrderService {
   async getAll() {

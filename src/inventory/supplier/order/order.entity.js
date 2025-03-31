@@ -14,4 +14,5 @@ const SupplierOrderSchema = new mongoose.Schema({
     ]
 });
 
-module.exports = mongoose.model("SupplierOrder", SupplierOrderSchema);
+const SupplierOrder = mongoose.model("SupplierOrder", SupplierOrderSchema);
+export default SupplierOrder
