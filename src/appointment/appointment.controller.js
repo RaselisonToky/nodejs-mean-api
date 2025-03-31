@@ -1,11 +1,13 @@
 import appointmentService from "./appointment.service.js";
+import AppointmentService from "./appointment.service.js";
+import {bindAll} from "express-validator/lib/utils.js";
 
 class AppointmentController{
     async getAll(req, res){
         try{
             const startDate = req.body.startDate;
             const endDate = req.body.endDate;
-            const appointments = await appointmentService.getAll(new Date(startDate), new Date(endDate));
+            const appointments = await appointmentService.getAll(startDate, endDate);
             res.json({
                 success: true,
                 data: appointments,
@@ -102,8 +104,27 @@ class AppointmentController{
         } catch (error) {
             return res.status(500).json({
                 success: false,
-                message: 'Erreur serveur lors de la récupération des créneaux disponibles'
+                message: 'Erreur serveur lors de la récupération des créneaux disponibles',
+                error: error.message
             });
+        }
+    }
+
+    async getAppointmentCountByStatus(req, res){
+        try {
+            const data = await AppointmentService.getAppointmentCountByStatus();
+            res.json({
+                success: true,
+                data,
+            })
+        }catch (error){
+            console.log(error)
+
+            res.status(500).json({
+                success: false,
+                message: 'Erreur lors de la récperation des nombre de rendez-vous par status',
+                error: error.message
+            })
         }
     }
 }

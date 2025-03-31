@@ -1,32 +1,47 @@
-import Appointment, {allTimeSlots} from "./appointment.entitiy.js";
+import Appointment, {allTimeSlots, STATUS} from "./appointment.entitiy.js";
+import TaskService from "../task/task.service.js";
+import taskService from "../task/task.service.js";
 
 class AppointmentService{
+
     async getAll(startDate, endDate) {
+        const startDateTime = new Date(startDate);
+        const endDateTime = new Date(endDate);
+        startDateTime.setHours(0, 0, 0, 0);
+        endDateTime.setHours(23, 59, 59, 999);
         return Appointment.find({
-            scheduleAt: {
-                $gte: startDate,
-                $lte: endDate
-            }
-        }).populate({
-            path: 'services',
-            populate: {
-                path: 'category'
-            }
-        })
-        .populate({
-            path: 'carModel',
-            populate: {
-                path: 'brand',
-            }
-        })
-        .exec();
+                scheduleAt: {
+                    $gte: startDateTime,
+                    $lte: endDateTime
+                }
+            }).populate({
+                path: 'services',
+                populate: {
+                    path: 'category'
+                }
+            })
+            .populate({
+                path: 'carModel',
+                populate: {
+                    path: 'brand',
+                }
+            }).exec();
     }
 
     async getById(id){
-        const appointment = Appointment.findById(id);
-        if (!appointment){
-            throw new Error("Marque non trouvée");
-        }
+        const appointment = Appointment.findById(id)
+            .populate({
+                path: 'services',
+                populate: {
+                    path: 'category'
+                }
+            })
+            .populate({
+                path: 'carModel',
+                populate: {
+                    path: 'brand',
+                }
+            }).exec();
         return appointment;
     }
 
@@ -46,8 +61,8 @@ class AppointmentService{
     async getAvailableTimeSlots(date) {
         try {
             const startOfDay = new Date(date);
-            startOfDay.setHours(0, 0, 0, 0);
             const endOfDay = new Date(date);
+            startOfDay.setHours(0, 0, 0, 0);
             endOfDay.setHours(23, 59, 59, 999);
             const appointments = await Appointment.find({
                 scheduleAt: {
@@ -57,7 +72,9 @@ class AppointmentService{
             });
             const bookedTimeSlots = appointments.map(appointment => {
                 const appointmentDate = new Date(appointment.scheduleAt);
-                return `${appointmentDate.getHours().toString().padStart(2, '0')}:00`;
+                const hours = appointmentDate.getHours().toString().padStart(2, '0');
+                const minutes = appointmentDate.getMinutes().toString().padStart(2, '0');
+                return `${hours}:${minutes}`;
             });
             return allTimeSlots.filter(
                 timeSlot => !bookedTimeSlots.includes(timeSlot)
@@ -66,6 +83,44 @@ class AppointmentService{
             console.error('Erreur lors de la récupération des créneaux disponibles:', error);
             throw error;
         }
+    }
+
+    async DETERMINES_APPOINTMENT_STATUS(tasks, appointmentId){
+        const isCompleted = await TaskService.CHECK_IF_TASK_IS_COMPLETED(tasks);
+        const isPending = await TaskService.CHECK_IF_ONE_OF_APPOINTMENT_TASKS_IS_PENDING(tasks);
+        const isInProgress = await TaskService.CHECK_IF_ONE_OF_APPOINTMENT_TASKS_IS_IN_PROGRESS(tasks);
+        const isInReview = await TaskService.CHECK_IF_ALL_TASK_IS_IN_REVIEW(tasks);
+        if(isPending)
+            return STATUS.PENDING;
+        else if(isCompleted)
+            return STATUS.COMPLETED;
+        else if (isInReview)
+            return STATUS.IN_REVIEW;
+         else if(isInProgress)
+            return STATUS.IN_PROGRESS;
+
+        return STATUS.IN_PROGRESS;
+    }
+
+    async updateAppointmentStatus(appointmentId){
+        const tasks = await taskService.findTasksByAppointmentId(appointmentId);
+        const newStatus = await this.DETERMINES_APPOINTMENT_STATUS(tasks);
+        return Appointment.findByIdAndUpdate(appointmentId, {status: newStatus})
+    }
+
+    async getAppointmentCountByStatus(){
+        const counts = await Appointment.aggregate([
+            {
+                $group: {
+                    _id: "$status",
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+        return counts.reduce((acc, curr) => {
+            acc[curr._id] = curr.count;
+            return acc;
+        }, {});
     }
 }
 export default new AppointmentService();

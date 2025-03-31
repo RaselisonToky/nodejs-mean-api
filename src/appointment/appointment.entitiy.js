@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
 
 export const STATUS = {
+    REQUESTED: 'REQUESTED',
     PENDING: 'PENDING',
-    CONFIRMED: 'CONFIRMED',
-    IN_MAINTENANCE: 'IN_MAINTENANCE',
-    SUSPENDED: 'SUSPENDED',
-    FINISHED: 'FINISHED'
+    IN_PROGRESS: 'IN_PROGRESS',
+    IN_REVIEW: 'IN_REVIEW',
+    COMPLETED: 'COMPLETED',
+    CANCELED: 'CANCELED'
 };
 
 export const allTimeSlots = [
@@ -25,7 +26,7 @@ const AppointmentSchema = new mongoose.Schema({
     scheduleAt: { type: Date, required: true },
     estimateDuration: { type: Number, default: 0 },
     estimatedPrice: { type: Number, default: 0 },
-    status: { type: String, enum: Object.values(STATUS), default: STATUS.PENDING }
+    status: { type: String, enum: Object.values(STATUS), default: STATUS.REQUESTED}
 });
 
 const Appointment = mongoose.model('Appointment', AppointmentSchema);
