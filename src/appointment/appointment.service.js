@@ -4,6 +4,19 @@ import taskService from "../task/task.service.js";
 
 class AppointmentService{
 
+    async create(data){
+        const newAppointment = new Appointment(data);
+        return await newAppointment.save();
+    }
+
+    async update(id, data){
+        return Appointment.findByIdAndUpdate(id, data);
+    }
+
+    async deleteById(id){
+        return Appointment.findByIdAndDelete(id);
+    }
+
     async getAll(startDate, endDate) {
         const startDateTime = new Date(startDate);
         const endDateTime = new Date(endDate);
@@ -29,7 +42,7 @@ class AppointmentService{
     }
 
     async getById(id){
-        const appointment = Appointment.findById(id)
+        return Appointment.findById(id)
             .populate({
                 path: 'services',
                 populate: {
@@ -42,50 +55,31 @@ class AppointmentService{
                     path: 'brand',
                 }
             }).exec();
-        return appointment;
-    }
-
-    async create(data){
-        const newAppointment = new Appointment(data);
-        return await newAppointment.save();
-    }
-
-    async update(id, data){
-        return Appointment.findByIdAndUpdate(id, data);
-    }
-
-    async deleteById(id){
-        return Appointment.findByIdAndDelete(id);
     }
 
     async getAvailableTimeSlots(date) {
-        try {
-            const startOfDay = new Date(date);
-            const endOfDay = new Date(date);
-            startOfDay.setHours(0, 0, 0, 0);
-            endOfDay.setHours(23, 59, 59, 999);
-            const appointments = await Appointment.find({
-                scheduleAt: {
-                    $gte: startOfDay,
-                    $lte: endOfDay
-                }
-            });
-            const bookedTimeSlots = appointments.map(appointment => {
-                const appointmentDate = new Date(appointment.scheduleAt);
-                const hours = appointmentDate.getHours().toString().padStart(2, '0');
-                const minutes = appointmentDate.getMinutes().toString().padStart(2, '0');
-                return `${hours}:${minutes}`;
-            });
-            return allTimeSlots.filter(
-                timeSlot => !bookedTimeSlots.includes(timeSlot)
-            );
-        } catch (error) {
-            console.error('Erreur lors de la récupération des créneaux disponibles:', error);
-            throw error;
-        }
+        const startOfDay = new Date(date);
+        const endOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        endOfDay.setHours(23, 59, 59, 999);
+        const appointments = await Appointment.find({
+            scheduleAt: {
+                $gte: startOfDay,
+                $lte: endOfDay
+            }
+        });
+        const bookedTimeSlots = appointments.map(appointment => {
+            const appointmentDate = new Date(appointment.scheduleAt);
+            const hours = appointmentDate.getHours().toString().padStart(2, '0');
+            const minutes = appointmentDate.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        });
+        return allTimeSlots.filter(
+            timeSlot => !bookedTimeSlots.includes(timeSlot)
+        );
     }
 
-    async DETERMINES_APPOINTMENT_STATUS(tasks, appointmentId){
+    async DETERMINES_APPOINTMENT_STATUS(tasks){
         const isCompleted = await TaskService.CHECK_IF_TASK_IS_COMPLETED(tasks);
         const isPending = await TaskService.CHECK_IF_ONE_OF_APPOINTMENT_TASKS_IS_PENDING(tasks);
         const isInProgress = await TaskService.CHECK_IF_ONE_OF_APPOINTMENT_TASKS_IS_IN_PROGRESS(tasks);
@@ -98,7 +92,6 @@ class AppointmentService{
             return STATUS.IN_REVIEW;
          else if(isInProgress)
             return STATUS.IN_PROGRESS;
-
         return STATUS.IN_PROGRESS;
     }
 
@@ -108,7 +101,7 @@ class AppointmentService{
         return Appointment.findByIdAndUpdate(appointmentId, {status: newStatus})
     }
 
-    async getAppointmentCountByStatus(){
+    async getAppointmentCountByStatus() {
         const counts = await Appointment.aggregate([
             {
                 $group: {
@@ -117,10 +110,19 @@ class AppointmentService{
                 }
             }
         ]);
-        return counts.reduce((acc, curr) => {
-            acc[curr._id] = curr.count;
+        const defaultCounts = Object.keys(STATUS).reduce((acc, key) => {
+            acc[STATUS[key]] = 0;
             return acc;
         }, {});
+        counts.forEach(item => {
+            defaultCounts[item._id] = item.count;
+        });
+        return Object.entries(defaultCounts).map(([action, count]) => ({
+            action,
+            count
+        }));
     }
+
+
 }
 export default new AppointmentService();
