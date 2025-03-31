@@ -21,6 +21,6 @@ app.use("/service", serviceRoute);
 app.use("/category", categoryRoute);
 app.use("/appointment", appointmentRoute);
 app.use("/tasks", taskRoute);
-app.use("/pieces", pieceRoute);
+app.use("/inventory/pieces", pieceRoute);
 
 export default app;
