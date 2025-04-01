@@ -7,6 +7,7 @@ const PieceSchema = new mongoose.Schema({
   stock_quantity: { type: Number, required: true, default: 0 },
   alert_threshold: { type: Number, default: 5 }, // Alert when stock is low
   last_updated: { type: Date, default: Date.now },
+  category_id: { type: mongoose.Schema.Types.ObjectId, ref: "PieceCategory" },
 });
 
 const Piece = mongoose.model("Piece", PieceSchema);
