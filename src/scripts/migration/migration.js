@@ -6,16 +6,19 @@ dotenv.config();
 import Role from "../../role/role.entity.js";
 import User from "../../user/user.entity.js";
 import Service from "../../service/service.entity.js";
-import Category from "../../category/category.entity.js";
+import Category from "../../category/category.entity.js"; // Catégorie pour les services
+import PieceCategory from "../../inventory/piece/categories/piece-categorie.entity.js"
 import bcrypt from "bcrypt";
 import { STATUS } from "../../appointment/appointment.entitiy.js";
 import Brand from "../../car/brand/brand.entity.js";
 import CarModel from "../../car/model/model.entity.js";
 import Piece from "../../inventory/piece/piece.entity.js";
 import Supplier from "../../inventory/supplier/supplier.entity.js";
+import SupplierOrder from "../../inventory/supplier/order/order.entity.js"
+import Transaction from "../../inventory/transaction/transaction.entity.js";
+import Inventory from "../../inventory/inventory.entity.js";
 
-
-const MONGO_URI = process.env.MONGO_URI ;
+const MONGO_URI = process.env.MONGO_URI;
 
 async function connectDB() {
   if (mongoose.connection.readyState === 0) {
@@ -68,29 +71,30 @@ async function createAdminUser(roles) {
 }
 
 async function createMechanics(roles, numMechanics = 5) {
-    const mechanicDocs = [];
+  const mechanicDocs = [];
 
-    for (let i = 0; i < numMechanics; i++) {
-        const username = `mechanic${i + 1}`;
-        let mechanic = await User.findOne({ username: username });
+  for (let i = 0; i < numMechanics; i++) {
+    const username = `mechanic${i + 1}`;
+    let mechanic = await User.findOne({ username: username });
 
-        if (!mechanic) {
-            mechanic = await User.create({
-                firstname: faker.person.firstName(),
-                lastname: faker.person.lastName(),
-                username: username,
-                email: `mechanic${i + 1}@gmail.com`,
-                password: await bcrypt.hash("password", 10),
-                roles: [roles["MECHANIC"]._id],
-            });
-            console.log(`Mécanicien ${username} créé`);
-        }
-        mechanicDocs.push(mechanic);
+    if (!mechanic) {
+      mechanic = await User.create({
+        firstname: faker.person.firstName(),
+        lastname: faker.person.lastName(),
+        username: username,
+        email: `mechanic${i + 1}@gmail.com`,
+        password: await bcrypt.hash("password", 10),
+        roles: [roles["MECHANIC"]._id],
+      });
+      console.log(`Mécanicien ${username} créé`);
     }
-    return mechanicDocs;
+    mechanicDocs.push(mechanic);
+  }
+  return mechanicDocs;
 }
 
 async function createCategories() {
+  // Catégories pour les services
   const categoryData = [
     {
       name: "Embrayage",
@@ -164,6 +168,28 @@ async function createCategories() {
     categories[catData.name] = category;
   }
   return categories;
+}
+
+async function createPieceCategories() {
+  // Catégories pour les pièces (PieceCategories)
+  const pieceCategoriesData = [
+    { name: "Moteur", description: "Pièces relatives au moteur" },
+    { name: "Transmission", description: "Pièces relatives à la transmission" },
+    { name: "Freinage", description: "Pièces de freinage" },
+    { name: "Suspension", description: "Pièces de suspension" },
+    { name: "Éclairage", description: "Pièces d'éclairage" },
+  ];
+
+  const pieceCategories = [];
+  for (const data of pieceCategoriesData) {
+    let category = await PieceCategory.findOne({ name: data.name });
+    if (!category) {
+      category = await PieceCategory.create(data);
+      console.log(`Catégorie de pièce ${data.name} créée`);
+    }
+    pieceCategories.push(category);
+  }
+  return pieceCategories;
 }
 
 async function createServices(categories) {
@@ -250,19 +276,15 @@ async function createServices(categories) {
           price: Math.floor(Math.random() * 200) + 50,
           estimateDuration: Math.floor(Math.random() * 120) + 30,
         });
-        console.log(
-          `Service ${serviceName} créé dans la catégorie ${categoryName}`,
-        );
+        console.log(`Service ${serviceName} créé dans la catégorie ${categoryName}`);
       }
     }
   }
 }
 
 async function createCarBrands() {
-
   const brandsData = ["Renault", "Peugeot", "Citroen", "Volkswagen", "Toyota"];
   const brandDocs = {};
-
 
   for (const brandName of brandsData) {
     let brand = await Brand.findOne({ name: brandName });
@@ -276,7 +298,6 @@ async function createCarBrands() {
 }
 
 async function createCarModels(brands) {
-
   const carModelData = [
     { brand: brands["Renault"]._id, name: "Clio", releaseYear: 2018 },
     { brand: brands["Peugeot"]._id, name: "308", releaseYear: 2019 },
@@ -293,40 +314,7 @@ async function createCarModels(brands) {
     if (!carModel) {
       carModel = await CarModel.create(car);
       console.log(`Modèle de voiture ${car.name} créé`);
-
-
-    const modelsByBrand = {
-        Renault: ["Clio (2019)", "Megane (2020)", "Captur (2021)", "Twingo (2022)", "Arkana (2023)"],
-        Peugeot: ["208 (2020)", "308 (2021)", "2008 (2022)", "3008 (2023)", "5008 (2020)"],
-        Citroen: ["C3 (2021)", "C4 (2022)", "C5 Aircross (2023)", "Berlingo (2020)", "C3 Aircross (2021)"],
-        Volkswagen: ["Golf (2020)", "Polo (2021)", "Tiguan (2022)", "Passat (2023)", "Taigo (2021)"],
-        Toyota: ["Yaris (2020)", "Corolla (2021)", "RAV4 (2022)", "C-HR (2023)", "Aygo X (2022)"],
-        BMW: ["Série 3 (2021)", "Série 5 (2022)", "X3 (2023)", "X1 (2022)", "i4 (2022)"],
-        "Mercedes-Benz": ["Classe C (2021)", "Classe E (2022)", "GLC (2023)", "Classe A (2022)", "GLB (2021)"],
-        Audi: ["A3 (2020)", "A4 (2021)", "Q3 (2022)", "Q5 (2023)", "A1 (2022)"],
-        Ford: ["Focus (2020)", "Fiesta (2021)", "Kuga (2022)", "Puma (2023)", "Mustang Mach-E (2021)"],
-        Nissan: ["Qashqai (2021)", "Juke (2022)", "X-Trail (2023)", "Micra (2020)", "Leaf (2021)"],
-        Fiat: ["500 (2021)", "Panda (2022)", "Tipo (2023)", "500X (2020)", "500L (2021)"],
-        Hyundai: ["Tucson (2021)", "Kona (2022)", "i20 (2023)", "i10 (2020)", "Bayon (2021)"],
-        Kia: ["Sportage (2021)", "Ceed (2022)", "Niro (2023)", "Picanto (2020)", "Stonic (2021)"],
-        Opel: ["Corsa (2020)", "Astra (2021)", "Mokka (2022)", "Crossland (2023)", "Grandland (2021)"]
-    };
-
-    for (const brandName in brands) {
-        const brandId = brands[brandName]._id;
-        const models = modelsByBrand[brandName];
-        for (const model of models) {
-            const [modelName, releaseYearStr] = model.split(" (");
-            const releaseYear = parseInt(releaseYearStr.slice(0, 4)); // Extract year from string
-            carModelData.push({
-                brand: brandId,
-                name: modelName,
-                releaseYear: releaseYear,
-            });
-        }
     }
-
-   
     carModelDocs.push(carModel);
   }
   return carModelDocs;
@@ -335,9 +323,7 @@ async function createCarModels(brands) {
 async function createAppointments(adminUser, services) {
   const carModels = await CarModel.find();
   if (!carModels.length) {
-    console.error(
-      "Aucun modèle de voiture trouvé. Vérifiez la migration des marques et modèles.",
-    );
+    console.error("Aucun modèle de voiture trouvé. Vérifiez la migration des marques et modèles.");
     return;
   }
 
@@ -349,11 +335,11 @@ async function createAppointments(adminUser, services) {
   const calculateTotals = (selectedServices) => {
     const totalDuration = selectedServices.reduce(
       (sum, service) => sum + service.estimateDuration,
-      0,
+      0
     );
     const totalPrice = selectedServices.reduce(
       (sum, service) => sum + service.price,
-      0,
+      0
     );
     return { totalDuration, totalPrice };
   };
@@ -369,7 +355,6 @@ async function createAppointments(adminUser, services) {
   const generateLicensePlate = () => {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const numbers = "0123456789";
-
     let plate = "";
     for (let i = 0; i < 2; i++) {
       plate += letters.charAt(Math.floor(Math.random() * letters.length));
@@ -382,7 +367,6 @@ async function createAppointments(adminUser, services) {
     for (let i = 0; i < 2; i++) {
       plate += letters.charAt(Math.floor(Math.random() * letters.length));
     }
-
     return plate;
   };
 
@@ -390,9 +374,8 @@ async function createAppointments(adminUser, services) {
   const Appointment = mongoose.model("Appointment");
 
   for (let i = 0; i < 10; i++) {
-    const selectedCarModel =
-      carModels[Math.floor(Math.random() * carModels.length)];
-    const numberOfServices = Math.floor(Math.random() * 3) + 1; // 1 à 3 services
+    const selectedCarModel = carModels[Math.floor(Math.random() * carModels.length)];
+    const numberOfServices = Math.floor(Math.random() * 3) + 1;
     const selectedServices = getRandomServices(services, numberOfServices);
     const { totalDuration, totalPrice } = calculateTotals(selectedServices);
     const status = statuses[Math.floor(Math.random() * statuses.length)];
@@ -409,20 +392,12 @@ async function createAppointments(adminUser, services) {
       estimatedPrice: totalPrice,
       status: status,
     });
-
-    console.log(`Rendez-vous #${i + 1} créé avec statut ${status}`);
+    console.log(`Rendez-vous créé avec statut ${status}`);
   }
-
-
   console.log("Tous les rendez-vous ont été créés");
-
-        return plate;
-    };
-
-
 }
 
-const createPieces = async (numRecords = 10) => {
+const createPieces = async (numRecords = 10, pieceCategories = []) => {
   // Liste de types de pièces de véhicule réalistes
   const vehicleParts = [
     "Courroie de distribution",
@@ -436,96 +411,135 @@ const createPieces = async (numRecords = 10) => {
     "Embrayage",
     "Filtres à air",
   ];
-
-  for (let i = 0; i < numRecords; i++) {
-    const partName = vehicleParts[i];
-    await Piece.create({
-      name: partName, // Nom de la pièce spécifique
-      reference: faker.string.uuid(), // Référence unique pour chaque pièce
-      description: faker.commerce.productDescription(), // Description générée aléatoirement
-      unit_price: parseFloat(faker.commerce.price(10, 1000, 2)), // Prix entre 10 et 1000
-      stock_quantity: faker.number.int({ min: 1, max: 50 }), // Quantité en stock
-      alert_threshold: 5, // Seuil d'alerte pour stock faible
-      last_updated: new Date(), // Date actuelle
-    });
-  }
-
-  console.log(`${numRecords} pièces de véhicules créées avec succès !`);
-};
-
-const createFakePieces = async (numRecords = 10) => {
-
   const pieces = [];
   for (let i = 0; i < numRecords; i++) {
-    const piece = new Piece({
-      name: faker.commerce.productName(),
+    const partName = vehicleParts[i % vehicleParts.length];
+    const piece = await Piece.create({
+      name: partName,
       reference: faker.string.uuid(),
       description: faker.commerce.productDescription(),
-      unit_price: parseFloat(faker.commerce.price()),
-      stock_quantity: faker.number.int({ min: 0, max: 100 }),
-      alert_threshold: faker.number.int({ min: 1, max: 10 }),
-      last_updated: faker.date.recent(),
+      unit_price: parseFloat(faker.commerce.price(10, 1000, 2)),
+      stock_quantity: faker.number.int({ min: 1, max: 50 }),
+      alert_threshold: 5,
+      last_updated: new Date(),
+      pieceCategory: pieceCategories.length 
+        ? pieceCategories[Math.floor(Math.random() * pieceCategories.length)]._id 
+        : undefined,
     });
     pieces.push(piece);
   }
+  console.log(`${numRecords} pièces de véhicules créées avec succès !`);
+  return pieces;
 };
+
+async function createSuppliers(num = 5) {
+  const suppliers = [];
+  for (let i = 0; i < num; i++) {
+    const supplier = await Supplier.create({
+      name: faker.company.name(),
+      contact: faker.phone.number(),
+      address: faker.location.streetAddress(),
+    });
+    console.log(`Fournisseur ${supplier.name} créé`);
+    suppliers.push(supplier);
+  }
+  return suppliers;
+}
+
+async function createSupplierOrders(suppliers, pieces, numOrders = 5) {
+  const statuses = ["Pending", "Shipped", "Received", "Cancelled"];
+  const orders = [];
+  for (let i = 0; i < numOrders; i++) {
+    const supplier = suppliers[Math.floor(Math.random() * suppliers.length)];
+    const numItems = faker.number.int({ min: 1, max: 3 });
+    let items = [];
+    for (let j = 0; j < numItems; j++) {
+      const piece = pieces[Math.floor(Math.random() * pieces.length)];
+      items.push({
+        part_id: piece._id,
+        quantity: faker.number.int({ min: 1, max: 20 }),
+        unit_price: piece.unit_price,
+      });
+    }
+    const order = await SupplierOrder.create({
+      supplier_id: supplier._id,
+      order_date: faker.date.recent(),
+      status: statuses[Math.floor(Math.random() * statuses.length)],
+      items: items,
+    });
+    console.log(`Commande fournisseur ${order._id} créée pour ${supplier.name}`);
+    orders.push(order);
+  }
+  return orders;
+}
+
+async function createTransactions(pieces, supplierOrders, numTransactions = 10) {
+  const types = ["IN", "OUT"];
+  const transactions = [];
+  for (let i = 0; i < numTransactions; i++) {
+    const piece = pieces[Math.floor(Math.random() * pieces.length)];
+    const type = types[Math.floor(Math.random() * types.length)];
+    let related_order_id = null;
+    if (type === "IN" && supplierOrders.length > 0) {
+      related_order_id = supplierOrders[Math.floor(Math.random() * supplierOrders.length)]._id;
+    }
+    const transaction = await Transaction.create({
+      part_id: piece._id,
+      type: type,
+      quantity: faker.number.int({ min: 1, max: 10 }),
+      transaction_date: faker.date.recent(),
+      related_order_id: related_order_id,
+    });
+    console.log(`Transaction ${transaction.type} pour pièce ${piece.name} créée`);
+    transactions.push(transaction);
+  }
+  return transactions;
+}
+
+async function createInventories(pieces) {
+  const inventories = [];
+  for (const piece of pieces) {
+    const counted_quantity = faker.number.int({ min: 0, max: 100 });
+    const recorded_quantity = piece.stock_quantity;
+    const difference = counted_quantity - recorded_quantity;
+    const inventory = await Inventory.create({
+      part_id: piece._id,
+      counted_quantity: counted_quantity,
+      recorded_quantity: recorded_quantity,
+      audit_date: faker.date.recent(),
+      difference: difference,
+    });
+    console.log(`Inventaire créé pour pièce ${piece.name}`);
+    inventories.push(inventory);
+  }
+  return inventories;
+}
 
 async function runMigrations() {
   try {
     await connectDB();
     const roles = await createRoles();
     const adminUser = await createAdminUser(roles);
+    await createMechanics(roles);
     const categories = await createCategories();
     await createServices(categories);
+    const pieceCategories = await createPieceCategories();
     const brands = await createCarBrands();
     await createCarModels(brands);
-
     await createAppointments(adminUser, await Service.find());
-    await createPieces();
-    // await createSuppliers();
-    // await createFakePieces();
+    
+    const pieces = await createPieces(10, pieceCategories);
+    const suppliers = await createSuppliers(5);
+    const supplierOrders = await createSupplierOrders(suppliers, pieces, 5);
+    await createTransactions(pieces, supplierOrders, 10);
+    await createInventories(pieces);
+
     console.log("Toutes les migrations ont été exécutées avec succès");
   } catch (error) {
     console.error("Erreur lors de la migration", error);
   } finally {
     await closeDB();
   }
-
-    const pieces = [];
-    for (let i = 0; i < numRecords; i++) {
-        const piece = new Piece({
-            name: faker.commerce.productName(),
-            reference: faker.string.uuid(),
-            description: faker.commerce.productDescription(),
-            unit_price: parseFloat(faker.commerce.price()),
-            stock_quantity: faker.number.int({ min: 0, max: 100 }),
-            alert_threshold: faker.number.int({ min: 1, max: 10 }),
-            supplier_id: mongoose.Types.ObjectId(),
-            last_updated: faker.date.recent(),
-        });
-        pieces.push(piece);
-    }
-};
-
-async function runMigrations() {
-    try {
-        await connectDB();
-        const roles = await createRoles();
-        const adminUser = await createAdminUser(roles);
-        await createMechanics(roles);
-        const categories = await createCategories();
-        await createServices(categories);
-        const brands = await createCarBrands();
-        await createCarModels(brands);
-        await createAppointments(adminUser, await Service.find());
-        await createSuppliers();
-        // await createFakePieces();
-        console.log("Toutes les migrations ont été exécutées avec succès");
-    } catch (error) {
-        console.error("Erreur lors de la migration", error);
-    } finally {
-        await closeDB();
-    }
 }
 
 runMigrations().then();
