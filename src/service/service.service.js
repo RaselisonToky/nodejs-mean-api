@@ -1,5 +1,5 @@
 import Service from "./service.entity.js";
-import serviceRepository from "./repository/service.repository.js";
+import categoryRepository from "../category/repository/category.repository.js";
 
 class ServiceService{
     async getAll(){
@@ -28,7 +28,7 @@ class ServiceService{
     }
 
     async groupedByCategory(startDate, endDate) {
-        return serviceRepository.groupedByCategoryMongoDB(startDate,endDate);
+        return await categoryRepository.countServiceByCategoriesInTaskCollectionMongoDB(startDate, endDate);
     }
 
 }
