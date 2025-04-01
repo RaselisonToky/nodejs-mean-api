@@ -4,19 +4,6 @@ import taskService from "../task/task.service.js";
 
 class AppointmentService{
 
-    async create(data){
-        const newAppointment = new Appointment(data);
-        return await newAppointment.save();
-    }
-
-    async update(id, data){
-        return Appointment.findByIdAndUpdate(id, data);
-    }
-
-    async deleteById(id){
-        return Appointment.findByIdAndDelete(id);
-    }
-
     async getAll(startDate, endDate) {
         const startDateTime = new Date(startDate);
         const endDateTime = new Date(endDate);
@@ -123,6 +110,47 @@ class AppointmentService{
         }));
     }
 
+    async getAppointmentCountBetweenTwoDates(startDate, endDate) {
+        const startDateTime = new Date(startDate);
+        const endDateTime = new Date(endDate);
+        startDateTime.setHours(0, 0, 0, 0);
+        endDateTime.setHours(23, 59, 59, 999);
+        const appointments = await Appointment.find({
+            scheduleAt: {
+                $gte: startDateTime,
+                $lte: endDateTime
+            },
+            status: STATUS.PENDING
+        });
+        const appointmentsByDay = {};
+        const currentDate = new Date(startDateTime);
+        while (currentDate <= endDateTime) {
+            const dateString = currentDate.toISOString().split('T')[0];
+            appointmentsByDay[dateString] = 0;
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        appointments.forEach(appointment => {
+            const appointmentDate = new Date(appointment.scheduleAt);
+            const dateString = appointmentDate.toISOString().split('T')[0];
+            appointmentsByDay[dateString]++;
+        });
+        return Object.entries(appointmentsByDay).map(([date, count]) => ({
+            date,
+            appointmentCount: count
+        }));
+    }
 
+    async create(data){
+        const newAppointment = new Appointment(data);
+        return await newAppointment.save();
+    }
+
+    async update(id, data){
+        return Appointment.findByIdAndUpdate(id, data);
+    }
+
+    async deleteById(id){
+        return Appointment.findByIdAndDelete(id);
+    }
 }
 export default new AppointmentService();
