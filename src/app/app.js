@@ -12,8 +12,10 @@ import supplierOrderRoute from "../inventory/supplier/order/order.route.js";
 import transactionRoute from "../inventory/transaction/transaction.route.js";
 import inventoryRoute from "../inventory/inventory.route.js"
 import taskHistoryRoute from "../task-history/task-history.route.js";
+import { requestLogger } from "./request-logger.js";
 const app = express();
 app.use(express.json());
+app.use(requestLogger)
 
 app.get("/", (req, res) => {
   res.send("ok");
