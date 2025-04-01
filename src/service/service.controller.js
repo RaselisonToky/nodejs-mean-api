@@ -46,12 +46,6 @@ class ServiceController{
     async update(req, res) {
         try {
             const updatedService = await serviceService.update(req.params.id, req.body);
-            if (!updatedService) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Service non trouvée'
-                });
-            }
             res.json({
                 success: true,
                 message: 'Service mise à jour avec succès',
@@ -68,13 +62,7 @@ class ServiceController{
 
     async delete(req, res) {
         try {
-            const deletedService = await serviceService.deleteById(req.params.id);
-            if (!deletedService) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Service non trouvée'
-                });
-            }
+            await serviceService.deleteById(req.params.id);
             res.json({
                 success: true,
                 message: 'Service supprimée avec succès'
@@ -85,6 +73,23 @@ class ServiceController{
                 message: 'Erreur lors de la suppression du service',
                 error: error.message
             });
+        }
+    }
+
+    async groupedByCategory(req, res){
+        try{
+            const data = await serviceService.groupedByCategory(req.query.startDate, req.query.endDate);
+            res.json({
+                success: true,
+                data,
+                count: data.length
+            })
+        }catch (error){
+            res.status(500).json({
+                success: false,
+                message: 'Erreur lors de la récuperation des services groupées par category',
+                error: error.message
+            })
         }
     }
 }

@@ -1,4 +1,5 @@
 import Service from "./service.entity.js";
+import serviceRepository from "./repository/service.repository.js";
 
 class ServiceService{
     async getAll(){
@@ -25,6 +26,11 @@ class ServiceService{
     async deleteById(id){
         return Service.findByIdAndDelete(id);
     }
+
+    async groupedByCategory(startDate, endDate) {
+        return serviceRepository.groupedByCategoryMongoDB(startDate,endDate);
+    }
+
 }
 
 export default new ServiceService();

@@ -115,7 +115,7 @@ class AppointmentController{
 
     async getAppointmentBetweenTwoDates(req, res){
         try{
-            const data = await AppointmentService.getAppointmentCountBetweenTwoDates(req.query.startDate, req.query.endDate);
+            const data = await appointmentService.getAppointmentCountBetweenTwoDates(req.query.startDate, req.query.endDate);
             res.json({
                 success: true,
                 data,
