@@ -1,6 +1,5 @@
 import appointmentService from "./appointment.service.js";
 import AppointmentService from "./appointment.service.js";
-import {bindAll} from "express-validator/lib/utils.js";
 
 class AppointmentController{
     async getAll(req, res){
@@ -50,12 +49,6 @@ class AppointmentController{
     async update(req, res) {
         try {
             const updatedAppointment = await appointmentService.update(req.params.id, req.body);
-            if (!updatedAppointment) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Rendez-vous non trouvée'
-                });
-            }
             res.json({
                 success: true,
                 message: 'Rendez-vous mise à jour avec succès',
@@ -72,13 +65,7 @@ class AppointmentController{
 
     async delete(req, res) {
         try {
-            const deletedAppointment = await appointmentService.deleteById(req.params.id);
-            if (!deletedAppointment) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Rendez-vous non trouvée'
-                });
-            }
+            await appointmentService.deleteById(req.params.id);
             res.json({
                 success: true,
                 message: 'Rendez-vous supprimée avec succès'
@@ -118,11 +105,26 @@ class AppointmentController{
                 data,
             })
         }catch (error){
-            console.log(error)
-
             res.status(500).json({
                 success: false,
                 message: 'Erreur lors de la récperation des nombre de rendez-vous par status',
+                error: error.message
+            })
+        }
+    }
+
+    async getAppointmentBetweenTwoDates(req, res){
+        try{
+            const data = await AppointmentService.getAppointmentCountBetweenTwoDates(req.query.startDate, req.query.endDate);
+            res.json({
+                success: true,
+                data,
+                count: data.length
+            })
+        }catch (error){
+            res.status(500).json({
+                success: false,
+                message: 'Erreur lors de la récuperation des rendez-vous par jour entre 2 dates',
                 error: error.message
             })
         }
