@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 const TransactionSchema = new mongoose.Schema({
     part_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Part",
+        ref: "Piece",
         required: true,
     },
     type: { type: String, enum: ["IN", "OUT"], required: true }, // IN = restock, OUT = used in repair

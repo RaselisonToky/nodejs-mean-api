@@ -55,6 +55,7 @@ class PieceController {
       if (!deletedPiece) return res.status(404).json({ message: "Piece not found" });
       res.status(200).json({ message: "Piece deleted successfully" });
     } catch (e) {
+      console.log(e)
       res.status(400).json({ message: e.message });
     }
   }
