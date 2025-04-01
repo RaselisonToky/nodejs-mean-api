@@ -33,7 +33,7 @@ app.use("/inventory/pieces", pieceRoute);
 app.use("/inventory/pieces/categories", pieceCategorieRoute);
 app.use("/inventory/supplier", supplierRoute);
 app.use("/inventory/supplier/order", supplierOrderRoute);
-app.use("/inventory/transaction", transactionRoute);
+app.use("/inventory/transactions", transactionRoute);
 app.use("/inventory", inventoryRoute);
 app.use('/tasks/histories', taskHistoryRoute)
 export default app;
