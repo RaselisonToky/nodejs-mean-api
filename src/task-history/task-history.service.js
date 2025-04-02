@@ -14,8 +14,8 @@ class TaskHistoryService {
     async getAll(startDate, endDate){
         const startDateTime = new Date(startDate);
         const endDateTime = new Date(endDate);
-        startDateTime.setHours(0,0,0,0);
-        endDateTime.setHours(23,59,59,999)
+        startDateTime.setUTCHours(0,0,0,0);
+        endDateTime.setUTCHours(23,59,59,999)
         return TaskHistory.find({
             createdAt: {
                 $gte: startDateTime,

@@ -5,8 +5,8 @@ class CategoryRepository {
     async countServiceByCategoriesInTaskCollectionMongoDB(startDate, endDate) {
         const start = new Date(startDate);
         const end = new Date(endDate);
-        start.setHours(0, 0, 0, 0);
-        end.setHours(23, 59, 59, 999);
+        start.setUTCHours(0, 0, 0, 0);
+        end.setUTCHours(23, 59, 59, 999);
         return Category.aggregate([
             {
                 $lookup: {
@@ -24,7 +24,7 @@ class CategoryRepository {
             },
             {
                 $lookup: {
-                    from: "tasks",
+                    from: "taskhistories",
                     let: { serviceId: "$services._id" },
                     pipeline: [
                         {

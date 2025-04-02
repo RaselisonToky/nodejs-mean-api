@@ -1,5 +1,6 @@
 import appointmentService from "./appointment.service.js";
 import AppointmentService from "./appointment.service.js";
+import appointmentRepository from "./repository/appointment.repository.js";
 
 class AppointmentController{
     async getAll(req, res){
@@ -115,7 +116,7 @@ class AppointmentController{
 
     async getAppointmentBetweenTwoDates(req, res){
         try{
-            const data = await appointmentService.getAppointmentCountBetweenTwoDates(req.query.startDate, req.query.endDate);
+            const data = await appointmentService.getPendingAppointmentCountBetweenTwoDates(req.query.startDate, req.query.endDate);
             res.json({
                 success: true,
                 data,
@@ -125,6 +126,24 @@ class AppointmentController{
             res.status(500).json({
                 success: false,
                 message: 'Erreur lors de la récuperation des rendez-vous par jour entre 2 dates',
+                error: error.message
+            })
+        }
+    }
+
+    async getDailyRevenue(req, res){
+        try{
+            const data = await appointmentService.getDailyRevenue(req.query.startDate, req.query.endDate);
+            res.json({
+                message: true,
+                data,
+                count: data.length
+            })
+        }catch (error){
+            console.log(error)
+            res.status(500).json({
+                success: false,
+                message: "Erreur lors de la récuperation des chiffre d'affaires",
                 error: error.message
             })
         }

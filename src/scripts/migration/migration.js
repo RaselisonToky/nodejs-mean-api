@@ -326,24 +326,12 @@ async function createAppointments(adminUser, services) {
     console.error("Aucun modèle de voiture trouvé. Vérifiez la migration des marques et modèles.");
     return;
   }
-  const generateRandomDateInMonths = () => {
-    const year = new Date().getFullYear();
-    const months = [3, 4, 5];
-    const month = months[Math.floor(Math.random() * months.length)];
-    let maxDay;
-    if (month === 3 || month === 5) {
-      maxDay = 30;
-    } else if (month === 4) {
-      maxDay = 31;
-    }
-    const day = Math.floor(Math.random() * maxDay) + 1;
-    const hour = Math.floor(Math.random() * 9) + 8;
-    return new Date(year, month, day, hour, 0, 0, 0);
-  };
+
   const getRandomServices = (services, count) => {
     const shuffled = [...services].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
   };
+
   const calculateTotals = (selectedServices) => {
     const totalDuration = selectedServices.reduce(
         (sum, service) => sum + service.estimateDuration,
@@ -355,6 +343,7 @@ async function createAppointments(adminUser, services) {
     );
     return { totalDuration, totalPrice };
   };
+
   const generateMadagascarLicensePlate = () => {
     const randomLetters = (length) => {
       let result = "";
@@ -374,6 +363,7 @@ async function createAppointments(adminUser, services) {
     };
     return `${randomLetters(2)} ${randomDigits(4)} ${randomLetters(2)}`;
   };
+
   const generateMadagascarPhoneNumber = () => {
     const prefixes = ["032", "033", "034", "038"];
     const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
@@ -389,8 +379,24 @@ async function createAppointments(adminUser, services) {
     const part2 = randomDigits(3);
     return `${prefix} ${part1} ${part2}`;
   };
+
+  const generateRandomDateIn2025 = () => {
+    const start = new Date(2025, 0, 1); // 1er janvier 2025
+    const end = new Date(2025, 11, 31); // 31 décembre 2025
+    const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+
+    // Heures d'ouverture réalistes (8h-17h)
+    const hours = Math.floor(Math.random() * 9) + 8; // 8h à 16h
+    const minutes = Math.random() < 0.5 ? 0 : 30; // xx:00 ou xx:30
+    date.setHours(hours, minutes, 0, 0);
+
+    return date;
+  };
+
   const Appointment = mongoose.model("Appointment");
-  for (let i = 0; i < 100; i++) {
+  const statusValues = Object.values(STATUS);
+
+  for (let i = 0; i < 1000; i++) {
     const selectedCarModel = carModels[Math.floor(Math.random() * carModels.length)];
     const numberOfServices = Math.floor(Math.random() * 3) + 1;
     const selectedServices = getRandomServices(services, numberOfServices);
@@ -401,6 +407,18 @@ async function createAppointments(adminUser, services) {
     const email = faker.internet.email({ firstName, lastName });
     const phone = generateMadagascarPhoneNumber();
 
+    const scheduleAt = generateRandomDateIn2025();
+    const now = new Date();
+
+    // Détermination du statut
+    let status;
+    if (scheduleAt < now) { // Date passée
+      status = STATUS.COMPLETED;
+    } else { // Date future
+      const availableStatuses = statusValues.filter(s => s !== STATUS.COMPLETED);
+      status = availableStatuses[Math.floor(Math.random() * availableStatuses.length)];
+    }
+
     await Appointment.create({
       name: fullName,
       email: email,
@@ -408,14 +426,14 @@ async function createAppointments(adminUser, services) {
       carModel: selectedCarModel._id,
       licensePlate: generateMadagascarLicensePlate(),
       services: selectedServices.map((service) => service._id),
-      scheduleAt: generateRandomDateInMonths(),
+      scheduleAt: scheduleAt,
       estimateDuration: totalDuration,
       estimatedPrice: totalPrice,
-      status: STATUS.REQUESTED,
+      status: status,
     });
-    console.log(`Rendez-vous créé pour ${fullName} avec statut ${STATUS.REQUESTED}`);
+    console.log(`Rendez-vous créé pour ${fullName} (${scheduleAt.toLocaleDateString()}) avec statut ${status}`);
   }
-  console.log("200 rendez-vous ont été créés : 100 REQUESTED et 100 COMPLETED");
+  console.log("1000 rendez-vous créés pour 2025 avec répartition réaliste des statuts");
 }
 
 

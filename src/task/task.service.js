@@ -82,6 +82,11 @@ class TaskService {
     async CHECK_IF_TASK_IS_COMPLETED(tasks){
         return  tasks.every(task => task.status === STATUS.COMPLETED);
     }
+
+    async deleteManyByAppointmentId(appointmentId){
+        return Task.deleteMany({ appointment: appointmentId });
+    }
+
 }
 
 export default new TaskService();

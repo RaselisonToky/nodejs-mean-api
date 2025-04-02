@@ -1,14 +1,15 @@
 import Appointment, {allTimeSlots, STATUS} from "./appointment.entitiy.js";
 import TaskService from "../task/task.service.js";
 import taskService from "../task/task.service.js";
+import appointmentRepository from "./repository/appointment.repository.js";
 
 class AppointmentService{
 
     async getAll(startDate, endDate) {
         const startDateTime = new Date(startDate);
         const endDateTime = new Date(endDate);
-        startDateTime.setHours(0, 0, 0, 0);
-        endDateTime.setHours(23, 59, 59, 999);
+        startDateTime.setUTCHours(0, 0, 0, 0);
+        endDateTime.setUTCHours(23, 59, 59, 999);
         return Appointment.find({
                 scheduleAt: {
                     $gte: startDateTime,
@@ -51,8 +52,8 @@ class AppointmentService{
     async getAvailableTimeSlots(date) {
         const startOfDay = new Date(date);
         const endOfDay = new Date(date);
-        startOfDay.setHours(0, 0, 0, 0);
-        endOfDay.setHours(23, 59, 59, 999);
+        startOfDay.setUTCHours(0, 0, 0, 0);
+        endOfDay.setUTCHours(23, 59, 59, 999);
         const appointments = await Appointment.find({
             scheduleAt: {
                 $gte: startOfDay,
@@ -89,6 +90,10 @@ class AppointmentService{
     async updateAppointmentStatus(appointmentId){
         const tasks = await taskService.findTasksByAppointmentId(appointmentId);
         const newStatus = await this.DETERMINES_APPOINTMENT_STATUS(tasks);
+        if(newStatus === STATUS.COMPLETED){
+            console.log("miditra ato ve")
+            await taskService.deleteManyByAppointmentId(appointmentId);
+        }
         return Appointment.findByIdAndUpdate(appointmentId, {status: newStatus})
     }
 
@@ -114,11 +119,11 @@ class AppointmentService{
         }));
     }
 
-    async getAppointmentCountBetweenTwoDates(startDate, endDate) {
+    async getPendingAppointmentCountBetweenTwoDates(startDate, endDate) {
         const startDateTime = new Date(startDate);
         const endDateTime = new Date(endDate);
-        startDateTime.setHours(0, 0, 0, 0);
-        endDateTime.setHours(23, 59, 59, 999);
+        startDateTime.setUTCHours(0, 0, 0, 0);
+        endDateTime.setUTCHours(23, 59, 59, 999);
         const appointments = await Appointment.find({
             scheduleAt: {
                 $gte: startDateTime,
@@ -142,6 +147,10 @@ class AppointmentService{
             date,
             appointmentCount: count
         }));
+    }
+
+    async getDailyRevenue(startDate, endDate){
+        return await appointmentRepository.getDailyRevenueMongoDB(startDate, endDate);
     }
 
     async create(data){
