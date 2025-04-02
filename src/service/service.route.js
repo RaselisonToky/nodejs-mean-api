@@ -3,7 +3,6 @@ import serviceController from "./service.controller.js";
 const router = Router();
 
 router.get('/', serviceController.getAll);
-router.get('/grouped-by-category', serviceController.groupedByCategory)
 router.get('/:id', serviceController.getById);
 router.post('/', serviceController.create);
 router.put('/:id', serviceController.update);

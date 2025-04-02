@@ -1,4 +1,5 @@
 import Category from "./category.entity.js";
+import categoryRepository from "./repository/category.repository.js";
 
 class CategoryService{
     async getAll(){
@@ -24,6 +25,10 @@ class CategoryService{
 
     async deleteById(id){
         return Category.findByIdAndDelete(id);
+    }
+
+    async finishedServiceCountByCategory(startDate, endDate) {
+        return await categoryRepository.countServiceByCategoriesInTaskCollectionMongoDB(startDate, endDate);
     }
 }
 

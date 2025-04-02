@@ -75,23 +75,6 @@ class ServiceController{
             });
         }
     }
-
-    async groupedByCategory(req, res){
-        try{
-            const data = await serviceService.groupedByCategory(req.query.startDate, req.query.endDate);
-            res.json({
-                success: true,
-                data,
-                count: data.length
-            })
-        }catch (error){
-            res.status(500).json({
-                success: false,
-                message: 'Erreur lors de la récuperation des services groupées par category',
-                error: error.message
-            })
-        }
-    }
 }
 
 

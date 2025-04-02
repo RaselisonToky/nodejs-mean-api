@@ -26,11 +26,6 @@ class ServiceService{
     async deleteById(id){
         return Service.findByIdAndDelete(id);
     }
-
-    async groupedByCategory(startDate, endDate) {
-        return await categoryRepository.countServiceByCategoriesInTaskCollectionMongoDB(startDate, endDate);
-    }
-
 }
 
 export default new ServiceService();

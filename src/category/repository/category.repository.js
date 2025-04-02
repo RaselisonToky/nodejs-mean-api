@@ -2,46 +2,55 @@ import Category from "../category.entity.js";
 
 class CategoryRepository {
 
-    /**
-     * Regroupe les services par catégorie en fonction de l'intervalle de dates.
-     *
-     * Cette fonction agrège les données à partir de la collection Category et:
-     * 1. Pour chaque catégorie, récupère les services associés créés dans l'intervalle de dates spécifié
-     * 2. Calcule le nombre de services trouvés pour chaque catégorie
-     * 3. Retourne une liste de toutes les catégories avec leur ID, nom et compteur de services
-     *
-     * @param {Date} startDate - Date de début de l'intervalle pour filtrer les services.
-     * @param {Date} endDate - Date de fin de l'intervalle pour filtrer les services.
-     * @returns {Promise<Array>} - Liste de toutes les catégories contenant:
-     *   - _id: Identifiant MongoDB de la catégorie
-     *   - name: Nom de la catégorie
-     *   - count: Nombre de services associés créés dans l'intervalle de dates
-     */
     async countServiceByCategoriesInTaskCollectionMongoDB(startDate, endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
         return Category.aggregate([
             {
                 $lookup: {
                     from: "services",
-                    let: { categoryId: "$_id" },
+                    localField: "_id",
+                    foreignField: "category",
+                    as: "services"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$services",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
+                    from: "tasks",
+                    let: { serviceId: "$services._id" },
                     pipeline: [
                         {
                             $match: {
                                 $expr: {
                                     $and: [
-                                        { $eq: ["$category", "$$categoryId"] },
-                                        { $gte: ["$createdAt", new Date(startDate)] },
-                                        { $lte: ["$createdAt", new Date(endDate)] }
+                                        { $eq: ["$service", "$$serviceId"] },
+                                        { $eq: ["$status", "COMPLETED"] },
+                                        { $gte: ["$finish_time", start] },
+                                        { $lte: ["$finish_time", end] }
                                     ]
                                 }
                             }
                         }
                     ],
-                    as: "services"
+                    as: "filteredTasks"
                 }
             },
             {
-                $addFields: {
-                    count: { $size: "$services" }
+                $group: {
+                    _id: "$_id",
+                    name: { $first: "$name" },
+                    backgroundColor: { $first: "$backgroundColor" },
+                    borderColor: { $first: "$borderColor" },
+                    color: { $first: "$color" },
+                    count: { $sum: { $size: "$filteredTasks" } }
                 }
             },
             {

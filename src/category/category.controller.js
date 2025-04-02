@@ -1,4 +1,5 @@
 import categoryService from "./category.service.js";
+import serviceService from "../service/service.service.js";
 
 class CategoryController{
     async getAll(req, res){
@@ -46,12 +47,6 @@ class CategoryController{
     async update(req, res) {
         try {
             const updatedCategory = await categoryService.update(req.params.id, req.body);
-            if (!updatedCategory) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Category non trouvée'
-                });
-            }
             res.json({
                 success: true,
                 message: 'Category mise à jour avec succès',
@@ -68,13 +63,7 @@ class CategoryController{
 
     async delete(req, res) {
         try {
-            const deletedCategory = await categoryService.deleteById(req.params.id);
-            if (!deletedCategory) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Category non trouvée'
-                });
-            }
+            await categoryService.deleteById(req.params.id);
             res.json({
                 success: true,
                 message: 'Category supprimée avec succès'
@@ -85,6 +74,23 @@ class CategoryController{
                 message: 'Erreur lors de la suppression du category',
                 error: error.message
             });
+        }
+    }
+
+    async finishedServiceCountByCategory(req, res){
+        try{
+            const data = await categoryService.finishedServiceCountByCategory(req.query.startDate, req.query.endDate);
+            res.json({
+                success: true,
+                data,
+                count: data.length
+            })
+        }catch (error){
+            res.status(500).json({
+                success: false,
+                message: 'Erreur lors de la récuperation des services groupées par category',
+                error: error.message
+            })
         }
     }
 }

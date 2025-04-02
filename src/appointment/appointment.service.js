@@ -25,7 +25,11 @@ class AppointmentService{
                 populate: {
                     path: 'brand',
                 }
-            }).exec();
+            })
+            .sort({
+                scheduleAt: 1
+            })
+            .exec();
     }
 
     async getById(id){

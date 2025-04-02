@@ -326,76 +326,99 @@ async function createAppointments(adminUser, services) {
     console.error("Aucun modèle de voiture trouvé. Vérifiez la migration des marques et modèles.");
     return;
   }
-
+  const generateRandomDateInMonths = () => {
+    const year = new Date().getFullYear();
+    const months = [3, 4, 5];
+    const month = months[Math.floor(Math.random() * months.length)];
+    let maxDay;
+    if (month === 3 || month === 5) {
+      maxDay = 30;
+    } else if (month === 4) {
+      maxDay = 31;
+    }
+    const day = Math.floor(Math.random() * maxDay) + 1;
+    const hour = Math.floor(Math.random() * 9) + 8;
+    return new Date(year, month, day, hour, 0, 0, 0);
+  };
   const getRandomServices = (services, count) => {
     const shuffled = [...services].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
   };
-
   const calculateTotals = (selectedServices) => {
     const totalDuration = selectedServices.reduce(
-      (sum, service) => sum + service.estimateDuration,
-      0
+        (sum, service) => sum + service.estimateDuration,
+        0
     );
     const totalPrice = selectedServices.reduce(
-      (sum, service) => sum + service.price,
-      0
+        (sum, service) => sum + service.price,
+        0
     );
     return { totalDuration, totalPrice };
   };
-
-  const generateRandomDate = () => {
-    const now = new Date();
-    const futureDate = new Date();
-    futureDate.setDate(now.getDate() + Math.floor(Math.random() * 30) + 1);
-    futureDate.setHours(Math.floor(Math.random() * 9) + 8, 0, 0, 0);
-    return futureDate;
+  const generateMadagascarLicensePlate = () => {
+    const randomLetters = (length) => {
+      let result = "";
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      for (let i = 0; i < length; i++) {
+        result += letters.charAt(Math.floor(Math.random() * letters.length));
+      }
+      return result;
+    };
+    const randomDigits = (length) => {
+      let result = "";
+      const digits = "0123456789";
+      for (let i = 0; i < length; i++) {
+        result += digits.charAt(Math.floor(Math.random() * digits.length));
+      }
+      return result;
+    };
+    return `${randomLetters(2)} ${randomDigits(4)} ${randomLetters(2)}`;
   };
-
-  const generateLicensePlate = () => {
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const numbers = "0123456789";
-    let plate = "";
-    for (let i = 0; i < 2; i++) {
-      plate += letters.charAt(Math.floor(Math.random() * letters.length));
-    }
-    plate += "-";
-    for (let i = 0; i < 3; i++) {
-      plate += numbers.charAt(Math.floor(Math.random() * numbers.length));
-    }
-    plate += "-";
-    for (let i = 0; i < 2; i++) {
-      plate += letters.charAt(Math.floor(Math.random() * letters.length));
-    }
-    return plate;
+  const generateMadagascarPhoneNumber = () => {
+    const prefixes = ["032", "033", "034", "038"];
+    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const randomDigits = (length) => {
+      let result = "";
+      const digits = "0123456789";
+      for (let i = 0; i < length; i++) {
+        result += digits.charAt(Math.floor(Math.random() * digits.length));
+      }
+      return result;
+    };
+    const part1 = randomDigits(3);
+    const part2 = randomDigits(3);
+    return `${prefix} ${part1} ${part2}`;
   };
-
-  const statuses = Object.values(STATUS);
   const Appointment = mongoose.model("Appointment");
-
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 100; i++) {
     const selectedCarModel = carModels[Math.floor(Math.random() * carModels.length)];
     const numberOfServices = Math.floor(Math.random() * 3) + 1;
     const selectedServices = getRandomServices(services, numberOfServices);
     const { totalDuration, totalPrice } = calculateTotals(selectedServices);
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+    const fullName = `${firstName} ${lastName}`;
+    const email = faker.internet.email({ firstName, lastName });
+    const phone = generateMadagascarPhoneNumber();
 
     await Appointment.create({
-      name: "Raselison Toky",
-      email: "toky@gmail.com",
-      phone: "0343061615",
+      name: fullName,
+      email: email,
+      phone: phone,
       carModel: selectedCarModel._id,
-      licensePlate: generateLicensePlate(),
+      licensePlate: generateMadagascarLicensePlate(),
       services: selectedServices.map((service) => service._id),
-      scheduleAt: generateRandomDate(),
+      scheduleAt: generateRandomDateInMonths(),
       estimateDuration: totalDuration,
       estimatedPrice: totalPrice,
-      status: status,
+      status: STATUS.REQUESTED,
     });
-    console.log(`Rendez-vous créé avec statut ${status}`);
+    console.log(`Rendez-vous créé pour ${fullName} avec statut ${STATUS.REQUESTED}`);
   }
-  console.log("Tous les rendez-vous ont été créés");
+  console.log("200 rendez-vous ont été créés : 100 REQUESTED et 100 COMPLETED");
 }
+
+
 
 const createPieces = async (numRecords = 10, pieceCategories = []) => {
   // Liste de types de pièces de véhicule réalistes
@@ -422,8 +445,8 @@ const createPieces = async (numRecords = 10, pieceCategories = []) => {
       stock_quantity: faker.number.int({ min: 1, max: 50 }),
       alert_threshold: 5,
       last_updated: new Date(),
-      pieceCategory: pieceCategories.length 
-        ? pieceCategories[Math.floor(Math.random() * pieceCategories.length)]._id 
+      pieceCategory: pieceCategories.length
+        ? pieceCategories[Math.floor(Math.random() * pieceCategories.length)]._id
         : undefined,
     });
     pieces.push(piece);
@@ -527,7 +550,7 @@ async function runMigrations() {
     const brands = await createCarBrands();
     await createCarModels(brands);
     await createAppointments(adminUser, await Service.find());
-    
+
     const pieces = await createPieces(10, pieceCategories);
     const suppliers = await createSuppliers(5);
     const supplierOrders = await createSupplierOrders(suppliers, pieces, 5);
