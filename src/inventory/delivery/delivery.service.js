@@ -64,6 +64,8 @@ class DeliveryService {
         try {
 
             const temDelivery = {
+                livreur: data.livreur,
+                bon_livraison: data.bonLivraison,
                 order_id: data.order_id,
                 total_amount: data.total_amount,
                 details: this._formatDataDetails(data.details)
