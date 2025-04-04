@@ -51,21 +51,25 @@ class DeliveryService {
         }, 0);
     }
 
-    /**
-     * Creates a new delivery record. Calculates total_amount.
-     * @param {object} data - Delivery data (order_id, details, delivery_date?).
-     * @returns {Promise<object>} - The created and populated delivery document.
-     */
+    _formatDataDetails(dtoDetails) {
+        const formattedDetails = dtoDetails.map((piece) => ({
+            part_id: piece.pieceId,
+            quantity: piece.quantite,
+            unit_price: piece.prixUnitaire
+        }));
+        return formattedDetails;
+    }
     async create(data) {
+        console.log("Creating delivery with data:", data);
         try {
-            // Calculate total amount server-side for accuracy
-            const calculatedTotal = this._calculateTotalAmount(data.details);
-            const deliveryData = {
-                ...data,
-                total_amount: calculatedTotal // Override any provided total with calculated one
+
+            const temDelivery = {
+                order_id: data.order_id,
+                total_amount: data.total_amount,
+                details: this._formatDataDetails(data.details)
             };
 
-            const newDelivery = await Delivery.create(deliveryData);
+            const newDelivery = await Delivery.create(temDelivery);
             // Populate the newly created delivery before returning
             return await this._populateDelivery(newDelivery);
         } catch (error) {
