@@ -1,4 +1,4 @@
-import SupplierOrder from "./order.entity.js";
+import SupplierOrder,{SUPPLIER_ORDER_STATUS} from "./order.entity.js";
 import { getNextSequenceValue_TimestampRandom } from "../../../lib/util.js";
 class SupplierOrderService {
   async getAll() {
@@ -11,6 +11,14 @@ class SupplierOrderService {
         model: "Supplier",
         as: "supplier",
       })
+  }
+
+  async getAllTicketAvailable() {
+    return await SupplierOrder
+      .find({
+        status: { $nin: [SUPPLIER_ORDER_STATUS.CANCELLED, SUPPLIER_ORDER_STATUS.DELIVERED] }
+      })
+      .select('ticket_number _id');
   }
 
   async getById(id) {
@@ -141,7 +149,7 @@ class SupplierOrderService {
       }
     }
 
-    
+
     // --- Construct Pagination Info ---
     const totalPages = Math.ceil(totalDocs / limitNum);
     const pagination = {
@@ -182,6 +190,8 @@ class SupplierOrderService {
 
     return ticketNumber;
   }
+
+
 }
 
 export default new SupplierOrderService();

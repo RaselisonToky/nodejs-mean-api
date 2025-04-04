@@ -83,6 +83,15 @@ class SupplierOrderController {
         }
     }
 
+    async getSupplierOrderTicket(req, res) {
+        try {
+            const ticket = await supplierOrderService.getAllTicketAvailable();
+            res.status(200).json(ticket);
+        } catch (e) {
+            res.status(400).json({ message: e.message });
+        }
+    }
+
 }
 
 export default new SupplierOrderController();

@@ -10,6 +10,7 @@ import pieceRoute from "../inventory/piece/piece.route.js";
 import supplierRoute from "../inventory/supplier/supplier.route.js";
 import supplierOrderRoute from "../inventory/supplier/order/order.route.js";
 import transactionRoute from "../inventory/transaction/transaction.route.js";
+import deliveryRoute from "../inventory/delivery/delivery.route.js";
 import inventoryRoute from "../inventory/inventory.route.js"
 import taskHistoryRoute from "../task-history/task-history.route.js";
 import pieceCategorieRoute from "../inventory/piece/categories/piece-categorie.route.js"
@@ -34,6 +35,7 @@ app.use("/inventory/pieces/categories", pieceCategorieRoute);
 app.use("/inventory/supplierOrder", supplierOrderRoute);
 app.use("/inventory/supplier", supplierRoute);
 app.use("/inventory/transactions", transactionRoute);
+app.use("/inventory/delivery", deliveryRoute)
 app.use("/inventory", inventoryRoute);
 app.use('/tasks/histories', taskHistoryRoute)
 export default app;
