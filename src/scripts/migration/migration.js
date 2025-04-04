@@ -504,10 +504,11 @@ async function createSupplierOrders(suppliers, pieces, numOrders = 5) {
       });
       totalAmount += piece.unit_price * items[j].quantity;
     }
+    const statusObj = Object.values(SUPPLIER_ORDER_STATUS);
     const order = await SupplierOrder.create({
       supplier_id: supplier._id,
       order_date: faker.date.recent(),
-      status: SUPPLIER_ORDER_STATUS[Math.floor(Math.random() * SUPPLIER_ORDER_STATUS.length)],
+      status: statusObj[Math.floor(Math.random() * statusObj.length)],
       items: items,
       ticket_number: faker.string.alphanumeric({ length: 5 }),
       total_amount: totalAmount,
@@ -576,7 +577,7 @@ async function runMigrations() {
 
     const pieces = await createPieces(10, pieceCategories);
     const suppliers = await createSuppliers(5);
-    const supplierOrders = await createSupplierOrders(suppliers, pieces, 100);
+    const supplierOrders = await createSupplierOrders(suppliers, pieces, 10);
     await createTransactions(pieces, supplierOrders, 10);
     await createInventories(pieces);
 
