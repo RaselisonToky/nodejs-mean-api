@@ -12,6 +12,7 @@ const TransactionSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "SupplierOrder",
     },
+    prix_unitaire: { type: Number, required: true },
 });
 
 const Transaction = mongoose.model("Transaction", TransactionSchema);

@@ -529,6 +529,7 @@ async function createTransactions(pieces, supplierOrders, numTransactions = 10) 
       type: type,
       quantity: faker.number.int({ min: 1, max: 10 }),
       transaction_date: faker.date.recent(),
+      prix_unitaire: piece.unit_price,
       related_order_id: related_order_id,
     });
     console.log(`Transaction ${transaction.type} pour pièce ${piece.name} créée`);

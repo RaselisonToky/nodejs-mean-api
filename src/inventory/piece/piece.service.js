@@ -27,7 +27,14 @@ class PieceService {
     if (criteria.category_id) query.category_id = criteria.category_id;
 
     return await Piece.find(query).populate("category_id", "name");
-}
+  }
+  async updateCmup(id, cmup) {
+    return await Piece.findByIdAndUpdate(id, { $inc: { unit_price: cmup } }, { new: true });
+  }
+
+  async updateStock(id, quantity) {
+    return await Piece.findByIdAndUpdate(id, { $inc: { stock_quantity: quantity } }, { new: true });
+  }
 }
 
 export default new PieceService();

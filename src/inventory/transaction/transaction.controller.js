@@ -58,17 +58,31 @@ class TransactionController {
   }
 
   async search(req, res) {
+  
     try {
-      const results = await transactionService.search(req.body);
+      // Extract parameters from the query string (from the URL)
+      const criteria = {
+        searchTerm: req.query.q || '',  // For search term
+        start_date: req.query.startDate || '',  // For start date
+        end_date: req.query.endDate || '',
+      };
+
+      // Call the search service with the formatted criteria
+      const results = await transactionService.search(criteria);
+
+      // Send the response with results
       res.status(200).json({
         success: true,
         data: results,
         rowCounts: results.length,
       });
     } catch (e) {
+      // Error handling
+      console.log(e)
       res.status(400).json({ message: e.message });
     }
   }
+
 }
 
 export default new TransactionController();
