@@ -14,7 +14,7 @@ import Brand from "../../car/brand/brand.entity.js";
 import CarModel from "../../car/model/model.entity.js";
 import Piece from "../../inventory/piece/piece.entity.js";
 import Supplier from "../../inventory/supplier/supplier.entity.js";
-import SupplierOrder from "../../inventory/supplier/order/order.entity.js"
+import SupplierOrder, { SUPPLIER_ORDER_STATUS } from "../../inventory/supplier/order/order.entity.js"
 import Transaction from "../../inventory/transaction/transaction.entity.js";
 import Inventory from "../../inventory/inventory.entity.js";
 
@@ -334,12 +334,12 @@ async function createAppointments(adminUser, services) {
 
   const calculateTotals = (selectedServices) => {
     const totalDuration = selectedServices.reduce(
-        (sum, service) => sum + service.estimateDuration,
-        0
+      (sum, service) => sum + service.estimateDuration,
+      0
     );
     const totalPrice = selectedServices.reduce(
-        (sum, service) => sum + service.price,
-        0
+      (sum, service) => sum + service.price,
+      0
     );
     return { totalDuration, totalPrice };
   };
@@ -488,12 +488,13 @@ async function createSuppliers(num = 5) {
 }
 
 async function createSupplierOrders(suppliers, pieces, numOrders = 5) {
-  const statuses = ["Pending", "Shipped", "Received", "Cancelled"];
+
   const orders = [];
   for (let i = 0; i < numOrders; i++) {
     const supplier = suppliers[Math.floor(Math.random() * suppliers.length)];
     const numItems = faker.number.int({ min: 1, max: 3 });
     let items = [];
+    let totalAmount = 0;
     for (let j = 0; j < numItems; j++) {
       const piece = pieces[Math.floor(Math.random() * pieces.length)];
       items.push({
@@ -501,12 +502,15 @@ async function createSupplierOrders(suppliers, pieces, numOrders = 5) {
         quantity: faker.number.int({ min: 1, max: 20 }),
         unit_price: piece.unit_price,
       });
+      totalAmount += piece.unit_price * items[j].quantity;
     }
     const order = await SupplierOrder.create({
       supplier_id: supplier._id,
       order_date: faker.date.recent(),
-      status: statuses[Math.floor(Math.random() * statuses.length)],
+      status: SUPPLIER_ORDER_STATUS[Math.floor(Math.random() * SUPPLIER_ORDER_STATUS.length)],
       items: items,
+      ticket_number: faker.string.alphanumeric({ length: 5 }),
+      total_amount: totalAmount,
     });
     console.log(`Commande fournisseur ${order._id} créée pour ${supplier.name}`);
     orders.push(order);
@@ -572,7 +576,7 @@ async function runMigrations() {
 
     const pieces = await createPieces(10, pieceCategories);
     const suppliers = await createSuppliers(5);
-    const supplierOrders = await createSupplierOrders(suppliers, pieces, 5);
+    const supplierOrders = await createSupplierOrders(suppliers, pieces, 100);
     await createTransactions(pieces, supplierOrders, 10);
     await createInventories(pieces);
 

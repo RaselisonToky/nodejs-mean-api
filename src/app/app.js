@@ -31,8 +31,8 @@ app.use("/appointment", appointmentRoute);
 app.use("/tasks", taskRoute);
 app.use("/inventory/pieces", pieceRoute);
 app.use("/inventory/pieces/categories", pieceCategorieRoute);
-app.use("/inventory/supplier", supplierRoute);
 app.use("/inventory/supplier/order", supplierOrderRoute);
+app.use("/inventory/supplier", supplierRoute);
 app.use("/inventory/transactions", transactionRoute);
 app.use("/inventory", inventoryRoute);
 app.use('/tasks/histories', taskHistoryRoute)

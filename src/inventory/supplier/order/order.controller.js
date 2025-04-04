@@ -10,6 +10,7 @@ class SupplierOrderController {
                 rowCounts: orders.length,
             });
         } catch (e) {
+            console.error("Error fetching supplier orders:", e);
             res.status(400).json({
                 message: "Erreur lors de la récupération des commandes fournisseurs",
                 origin: e.message,
@@ -59,16 +60,23 @@ class SupplierOrderController {
 
     async search(req, res) {
         try {
-            const results = await supplierOrderService.search(req.body);
+            // Pass the entire req.query object to the service's search method
+            const results = await supplierOrderService.search(req.query);
+
             res.status(200).json({
                 success: true,
-                data: results,
-                rowCounts: results.length,
+                // Return the structure provided by the service
+                data: results.data,
+                pagination: results.pagination,
+                // rowCounts: results.data.length // Count for the current page only
             });
         } catch (e) {
-            res.status(400).json({ message: e.message });
+            console.error("Error searching supplier orders:", e); // Log the full error server-side
+            // Provide a more generic error message to the client
+            res.status(500).json({ success: false, message: "Erreur lors de la recherche des commandes fournisseur.", error: e.message }); // Include error message in dev
         }
     }
+
 }
 
 export default new SupplierOrderController();
