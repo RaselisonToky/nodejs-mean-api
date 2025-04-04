@@ -61,6 +61,7 @@ class SupplierOrderController {
     async search(req, res) {
         try {
             // Pass the entire req.query object to the service's search method
+
             const results = await supplierOrderService.search(req.query);
 
             res.status(200).json({
@@ -73,7 +74,12 @@ class SupplierOrderController {
         } catch (e) {
             console.error("Error searching supplier orders:", e); // Log the full error server-side
             // Provide a more generic error message to the client
-            res.status(500).json({ success: false, message: "Erreur lors de la recherche des commandes fournisseur.", error: e.message }); // Include error message in dev
+            res.status(500).json({
+                success: false,
+                message: "Erreur lors de la recherche des commandes fournisseur.",
+                error: e.message,
+                params: req.query
+            }); // Include error message in dev
         }
     }
 

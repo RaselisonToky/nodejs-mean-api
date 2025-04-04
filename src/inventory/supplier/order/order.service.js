@@ -46,150 +46,122 @@ class SupplierOrderService {
   }
 
 
-  /**
-  * Searches supplier orders using aggregation based on query parameters,
-  * includes text search, pagination, and formats the results.
-  * @param {object} queryParams - Object containing query parameters (startDate, endDate, q, page, limit).
-  * @returns {Promise<object>} - Promise resolving to { data: formattedResults, pagination: {...} }.
-  */
+
   async search(queryParams = {}) {
-    const { startDate, endDate, q, page = 1, limit = 10 } = queryParams;
-    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+
+    const { startDate, endDate, page = 1, limit = 10 } = queryParams;
+    console.log(page, limit);
+    const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
+    const skip = (pageNum - 1) * limitNum;
 
     const pipeline = [];
+    const matchFilter = {}; // Filter object for the $match stage
 
-    // --- Stage 1: Initial Match (Dates, exact fields if any) ---
-    const initialMatch = {};
     if (startDate || endDate) {
-      initialMatch.order_date = {};
+      matchFilter.order_date = {};
       if (startDate) {
-        try { initialMatch.order_date.$gte = new Date(startDate); }
-        catch (e) { console.warn("Invalid start date format:", startDate); }
+        try {
+          matchFilter.order_date.$gte = new Date(startDate);
+        } catch (e) { console.warn("Invalid start date format:", startDate); }
       }
       if (endDate) {
         try {
           let endOfDay = new Date(endDate);
-          endOfDay.setHours(23, 59, 59, 999); // Include full end day
-          initialMatch.order_date.$lte = endOfDay;
+          endOfDay.setHours(23, 59, 59, 999);
+          matchFilter.order_date.$lte = endOfDay;
         } catch (e) { console.warn("Invalid end date format:", endDate); }
       }
-      // Clean up if dates were invalid
-      if (Object.keys(initialMatch.order_date).length === 0) {
-        delete initialMatch.order_date;
+      // Clean up if dates were invalid or object is empty
+      if (!matchFilter.order_date || Object.keys(matchFilter.order_date).length === 0) {
+        delete matchFilter.order_date;
       }
     }
-    // Add other exact match fields from queryParams if needed (e.g., status)
-    // if (queryParams.status) { initialMatch.status = queryParams.status; }
 
-    if (Object.keys(initialMatch).length > 0) {
-      pipeline.push({ $match: initialMatch });
+    if (Object.keys(matchFilter).length > 0) {
+      pipeline.push({ $match: matchFilter });
     }
 
-    // --- Stage 2: Lookup Supplier ---
+    const countPipeline = [];
+    if (Object.keys(matchFilter).length > 0) {
+      countPipeline.push({ $match: matchFilter });
+    }
+    countPipeline.push({ $count: 'totalDocs' });
+
+    let totalDocs = 0;
+    try {
+      if (countPipeline.length === 1) { // Only $count stage
+        totalDocs = await SupplierOrder.estimatedDocumentCount(); // Faster for no filters
+      } else {
+        const countResult = await SupplierOrder.aggregate(countPipeline);
+        totalDocs = countResult.length > 0 ? countResult[0].totalDocs : 0;
+      }
+    } catch (error) {
+      console.error("Error calculating total count:", error);
+      throw new Error("Failed to calculate total document count.");
+    }
+
     pipeline.push({
       $lookup: {
-        from: 'suppliers', // Collection name for Suppliers
+        from: 'suppliers', // Use correct collection name
         localField: 'supplier_id',
         foreignField: '_id',
-        as: 'supplierDetails'
+        as: 'supplier_id'
       }
     });
+
     pipeline.push({
-      $unwind: { path: '$supplierDetails', preserveNullAndEmptyArrays: true }
+      $unwind: {
+        path: '$supplier_id',
+        preserveNullAndEmptyArrays: true
+      }
     });
 
-    // --- Stage 3: Text Search Match (if 'q' is provided) ---
-    if (q && q.trim()) {
-      const searchQuery = q.trim();
-      // Escape special regex characters for safety
-      const escapedSearchQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(escapedSearchQuery, 'i'); // Case-insensitive search
 
-      pipeline.push({
-        $match: {
-          $or: [
-            { ticket_number: regex },
-            { status: regex }, // Search status if relevant
-            { 'supplierDetails.name': regex } // Search on joined supplier name
-            // Add more fields if needed (e.g., item names/refs - requires another lookup+unwind or different strategy)
-          ]
-        }
-      });
+
+    let resultsData = [];
+    try {
+      resultsData = await SupplierOrder.aggregate(pipeline);
+    } catch (error) {
+      console.error("Error executing main search aggregation:", error);
+      // console.error("Pipeline:", JSON.stringify(pipeline, null, 2)); // Uncomment for debugging
+      throw new Error("Failed to retrieve supplier orders.");
     }
 
-    // --- Stage 4: Pagination and Data Shaping using $facet ---
-    pipeline.push({
-      $facet: {
-        // Branch 1: Metadata (total count)
-        metadata: [
-          { $count: 'totalDocs' }
-        ],
-        // Branch 2: Data (paginated results)
-        data: [
-          { $sort: { order_date: -1 } }, // Sort before skip/limit
-          { $skip: skip },
-          { $limit: limitNum },
-          // Project to reshape (rename supplier_id to supplier, etc.)
-          {
-            $project: {
-              supplier_id: 0, // Exclude original ID field
-              // supplierDetails: 0, // Exclude the temporary join field
-
-              _id: 1,
-              order_date: 1,
-              ticket_number: 1,
-              items: 1, // Keep items array for later population
-              status: 1,
-              total_amount: 1, // Keep if exists
-              __v: 1,
-
-              // Create the 'supplier' field
-              supplier: {
-                $ifNull: [
-                  { _id: "$supplierDetails._id", name: "$supplierDetails.name" },
-                  null // Or { _id: null, name: 'Inconnu' }
-                ]
-              }
-            }
-          }
-        ]
-      }
-    });
-
-    // --- Execute Aggregation ---
-    const aggregationResult = await SupplierOrder.aggregate(pipeline);
-
-    // --- Process Results ---
-    const resultsData = aggregationResult[0]?.data || [];
-    const totalDocs = aggregationResult[0]?.metadata[0]?.totalDocs || 0;
-    const totalPages = Math.ceil(totalDocs / limitNum);
-
-    // --- Populate items.part_id on the paginated data ---
+    // --- Populate items.part_id on the paginated results ---
     if (resultsData.length > 0) {
-      await SupplierOrder.populate(resultsData, {
-        path: 'items.part_id',
-        model: 'Piece', // Ensure 'Piece' is the correct Mongoose model name
-        select: 'name reference unit_price' // Select desired fields
-      });
+      try {
+        await SupplierOrder.populate(resultsData, {
+          path: 'items.part_id',
+          model: 'Piece',
+          select: 'name reference unit_price'
+        });
+      } catch (error) {
+        console.error("Error populating items.part_id:", error);
+      }
     }
 
-    // --- Format the results ---
-    const formattedData = formatSupplierOrdersWithLineTotals(resultsData);
+    
+    // --- Construct Pagination Info ---
+    const totalPages = Math.ceil(totalDocs / limitNum);
+    const pagination = {
+      totalDocs: totalDocs,
+      limit: limitNum,
+      totalPages: totalPages,
+      currentPage: pageNum,
+      hasNextPage: pageNum < totalPages,
+      hasPrevPage: pageNum > 1,
+    };
 
     // --- Return structured response ---
     return {
-      data: formattedData,
-      pagination: {
-        totalDocs: totalDocs,
-        limit: limitNum,
-        totalPages: totalPages,
-        currentPage: parseInt(page, 10),
-        hasNextPage: parseInt(page, 10) < totalPages,
-        hasPrevPage: parseInt(page, 10) > 1,
-      }
+      data: resultsData,
+      pagination: pagination
     };
   }
+
+
+
 
 
 
